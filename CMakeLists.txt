@@ -4,12 +4,14 @@ if(ESP_PLATFORM)
         SRCS
             "src/ultrasonic_sensor.c"
             "src/led.c"
+            "src/ir_line_sensor.c"
         INCLUDE_DIRS
             "include"
         REQUIRES
             esp_driver_gpio
             esp_timer
             esp_rom
+            esp_adc
     )
 else()
     # Building as a standalone CMake library (unit tests, host tooling, etc.).
@@ -19,6 +21,7 @@ else()
     add_library(ESP32EmbeddedCommonLib STATIC
         src/ultrasonic_sensor.c
         src/led.c
+        src/ir_line_sensor.c
     )
 
     target_include_directories(ESP32EmbeddedCommonLib
