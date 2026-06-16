@@ -18,8 +18,16 @@
  */
 #include "ESP32EmbeddedCommonLib/algo/odometry.h"
 
-#include <math.h>
 #include <stddef.h>
+
+/* sinf/cosf from newlib (ESP-IDF); included without _GNU_SOURCE so M_PI is
+ * intentionally NOT used \u2014 we define our own constants below instead. */
+#include <math.h>
+
+/* \u03c0 as a literal \u2014 avoids relying on M_PI which requires _GNU_SOURCE or
+ * _USE_MATH_DEFINES and is not guaranteed by C99/C11. */
+#define ODOMETRY_PI      3.14159265358979323846f
+#define ODOMETRY_TWO_PI  6.28318530717958647692f
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
@@ -41,7 +49,7 @@ void esp32_common_odometry_update(
     if (odom == NULL || ticks_per_rev == 0) return;
 
     /* Wheel circumference / ticks_per_rev gives metres per tick. */
-    float metres_per_tick = (2.0f * (float)M_PI * odom->config.wheel_radius_m)
+    float metres_per_tick = (ODOMETRY_TWO_PI * odom->config.wheel_radius_m)
                             / (float)ticks_per_rev;
     float dl = (float)delta_left  * metres_per_tick;  /* left arc length  */
     float dr = (float)delta_right * metres_per_tick;  /* right arc length */
@@ -60,8 +68,8 @@ void esp32_common_odometry_update(
 
     /* Normalise heading to the half-open interval (-π, π] to keep
      * arithmetic consistent regardless of how many full rotations occur. */
-    while (odom->pose.theta_rad >  (float)M_PI) odom->pose.theta_rad -= 2.0f * (float)M_PI;
-    while (odom->pose.theta_rad <= -(float)M_PI) odom->pose.theta_rad += 2.0f * (float)M_PI;
+    while (odom->pose.theta_rad >   ODOMETRY_PI) odom->pose.theta_rad -= ODOMETRY_TWO_PI;
+    while (odom->pose.theta_rad <= -ODOMETRY_PI) odom->pose.theta_rad += ODOMETRY_TWO_PI;
 }
 
 void esp32_common_odometry_get_pose(
