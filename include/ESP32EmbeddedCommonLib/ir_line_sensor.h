@@ -32,9 +32,17 @@ typedef struct {
     adc_oneshot_unit_handle_t adc_handle; /* valid only when analog_enabled */
 } esp32_common_ir_line_sensor_t;
 
-/* digital_pin only; analog disabled */
+/* D0 only; analog disabled. active_high defaults to false (standard TCRT5000). */
 esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_default_config(
     gpio_num_t digital_pin
+);
+
+/* D0 + A0 analog enabled in one call. */
+esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_config_with_analog(
+    gpio_num_t    digital_pin,
+    bool          active_high,
+    adc_unit_t    adc_unit,
+    adc_channel_t adc_channel
 );
 
 esp_err_t esp32_common_ir_line_sensor_init(

@@ -19,11 +19,29 @@ esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_default_config(
 ) {
     esp32_common_ir_line_sensor_config_t config = {
         .digital_pin    = digital_pin,
-        .active_high    = false,              /* TCRT5000: LOW = detected */
+        .active_high    = false,
         .analog_enabled = false,
         .analog_unit    = ADC_UNIT_1,
         .analog_channel = ADC_CHANNEL_0,
-        .analog_atten   = ADC_ATTEN_DB_12,   /* 0–3.3 V */
+        .analog_atten   = ADC_ATTEN_DB_12,
+    };
+
+    return config;
+}
+
+esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_config_with_analog(
+    gpio_num_t    digital_pin,
+    bool          active_high,
+    adc_unit_t    adc_unit,
+    adc_channel_t adc_channel
+) {
+    esp32_common_ir_line_sensor_config_t config = {
+        .digital_pin    = digital_pin,
+        .active_high    = active_high,
+        .analog_enabled = true,
+        .analog_unit    = adc_unit,
+        .analog_channel = adc_channel,
+        .analog_atten   = ADC_ATTEN_DB_12,
     };
 
     return config;
