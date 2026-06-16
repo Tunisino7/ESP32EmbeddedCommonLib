@@ -66,9 +66,9 @@
 static const char *TAG = "drv8833_n20_encoder";
 
 /* ── Static driver/motor instances ──────────────────────────────────────── */
-static esp32_common_drv8833_t              s_bridge;
-static esp32_common_dc_motor_encoder_t     s_motor_a;
-static esp32_common_dc_motor_encoder_t     s_motor_b;
+static ecl_drv8833_t              s_bridge;
+static ecl_dc_motor_encoder_t     s_motor_a;
+static ecl_dc_motor_encoder_t     s_motor_b;
 
 /* ── Helper: log RPM + pulses for both motors ────────────────────────────── */
 static void log_motors(void)
@@ -76,10 +76,10 @@ static void log_motors(void)
     float   rpm_a = 0.0f, rpm_b = 0.0f;
     int64_t pulses_a = 0,  pulses_b = 0;
 
-    esp32_common_dc_motor_encoder_get_rpm(&s_motor_a, &rpm_a);
-    esp32_common_dc_motor_encoder_get_rpm(&s_motor_b, &rpm_b);
-    esp32_common_dc_motor_encoder_get_pulses(&s_motor_a, &pulses_a);
-    esp32_common_dc_motor_encoder_get_pulses(&s_motor_b, &pulses_b);
+    ecl_dc_motor_encoder_get_rpm(&s_motor_a, &rpm_a);
+    ecl_dc_motor_encoder_get_rpm(&s_motor_b, &rpm_b);
+    ecl_dc_motor_encoder_get_pulses(&s_motor_a, &pulses_a);
+    ecl_dc_motor_encoder_get_pulses(&s_motor_b, &pulses_b);
 
     ESP_LOGI(TAG,
              "A → RPM: %6.1f  pulses: %lld  |  B → RPM: %6.1f  pulses: %lld",
@@ -93,8 +93,8 @@ static void motor_task(void *arg)
 
     /* ── 1. Forward at 60 % for 2 s ──────────────────────────────────────── */
     ESP_LOGI(TAG, "Forward 60%%");
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_set_speed(&s_motor_a,  60));
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_set_speed(&s_motor_b,  60));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_set_speed(&s_motor_a,  60));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_set_speed(&s_motor_b,  60));
 
     for (int i = 0; i < (2000 / RPM_PRINT_PERIOD_MS); i++) {
         vTaskDelay(pdMS_TO_TICKS(RPM_PRINT_PERIOD_MS));
@@ -103,8 +103,8 @@ static void motor_task(void *arg)
 
     /* ── 2. Reverse at −40 % for 2 s ─────────────────────────────────────── */
     ESP_LOGI(TAG, "Reverse -40%%");
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_set_speed(&s_motor_a, -40));
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_set_speed(&s_motor_b, -40));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_set_speed(&s_motor_a, -40));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_set_speed(&s_motor_b, -40));
 
     for (int i = 0; i < (2000 / RPM_PRINT_PERIOD_MS); i++) {
         vTaskDelay(pdMS_TO_TICKS(RPM_PRINT_PERIOD_MS));
@@ -113,23 +113,23 @@ static void motor_task(void *arg)
 
     /* ── 3. Stop ──────────────────────────────────────────────────────────── */
     ESP_LOGI(TAG, "Stop");
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_stop(&s_motor_a));
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_stop(&s_motor_b));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_stop(&s_motor_a));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_stop(&s_motor_b));
 
     int64_t pulses_a = 0, pulses_b = 0;
-    esp32_common_dc_motor_encoder_get_pulses(&s_motor_a, &pulses_a);
-    esp32_common_dc_motor_encoder_get_pulses(&s_motor_b, &pulses_b);
+    ecl_dc_motor_encoder_get_pulses(&s_motor_a, &pulses_a);
+    ecl_dc_motor_encoder_get_pulses(&s_motor_b, &pulses_b);
     ESP_LOGI(TAG, "Final pulses — A: %lld  B: %lld", pulses_a, pulses_b);
 
     /* Check for DRV8833 fault */
     bool fault = false;
-    if (esp32_common_drv8833_is_fault(&s_bridge, &fault) == ESP_OK && fault) {
+    if (ecl_drv8833_is_fault(&s_bridge, &fault) == ESP_OK && fault) {
         ESP_LOGE(TAG, "DRV8833 nFAULT asserted — overcurrent or overtemperature!");
     }
 
     /* Reset counters and loop back */
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_reset_count(&s_motor_a));
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_reset_count(&s_motor_b));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_reset_count(&s_motor_a));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_reset_count(&s_motor_b));
 
     vTaskDelay(pdMS_TO_TICKS(1000));
 
@@ -145,14 +145,14 @@ void app_main(void)
     ESP_LOGI(TAG, "DRV8833 + N20 encoder example starting");
 
     /* ── Initialise DRV8833 bridge ─────────────────────────────────────────── */
-    esp32_common_drv8833_config_t bridge_cfg =
-        esp32_common_drv8833_default_config(PIN_AIN1, PIN_AIN2,
+    ecl_drv8833_config_t bridge_cfg =
+        ecl_drv8833_default_config(PIN_AIN1, PIN_AIN2,
                                              PIN_BIN1, PIN_BIN2);
     bridge_cfg.pin_nsleep    = PIN_NSLEEP;
     bridge_cfg.pin_nfault    = PIN_NFAULT;
     bridge_cfg.slow_decay    = false;   /* fast decay: coast on stop */
 
-    ESP_ERROR_CHECK(esp32_common_drv8833_init(&s_bridge, &bridge_cfg));
+    ESP_ERROR_CHECK(ecl_drv8833_init(&s_bridge, &bridge_cfg));
     ESP_LOGI(TAG, "DRV8833 initialised");
 
     /*
@@ -162,18 +162,18 @@ void app_main(void)
      * from the DRV8833 driver.  We wire the same physical INx GPIOs here.
      * LEDC_TIMER_1 / channels 0-1 are used for motor A.
      */
-    esp32_common_dc_motor_encoder_config_t motor_a_cfg =
-        esp32_common_dc_motor_encoder_default_config(
+    ecl_dc_motor_encoder_config_t motor_a_cfg =
+        ecl_dc_motor_encoder_default_config(
             PIN_AIN1, PIN_AIN2,
-            bridge_cfg.channel[ESP32_COMMON_DRV8833_CHANNEL_A].pin_in1,  /* same pin, unused — see note below */
+            bridge_cfg.channel[ECL_DRV8833_CHANNEL_A].pin_in1,  /* same pin, unused — see note below */
             PIN_ENC_A_CH_A, PIN_ENC_B_CH_A);
 
     /*
      * NOTE: The DRV8833 driver controls the GPIO direction/duty via LEDC
      * internally.  We use dc_motor_encoder for its encoder (PCNT) and speed
      * control (LEDC) on the same physical pins.  Do NOT call
-     * esp32_common_drv8833_set_speed() and
-     * esp32_common_dc_motor_encoder_set_speed() on the same channel at the
+     * ecl_drv8833_set_speed() and
+     * ecl_dc_motor_encoder_set_speed() on the same channel at the
      * same time — use the encoder driver exclusively when encoders are present.
      *
      * Override LEDC resources so they don't collide with the drv8833 defaults:
@@ -187,12 +187,12 @@ void app_main(void)
     motor_a_cfg.motor.ledc_channel       = LEDC_CHANNEL_0;
     motor_a_cfg.gear_ratio               = MOTOR_GEAR_RATIO;
 
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_init(&s_motor_a, &motor_a_cfg));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_init(&s_motor_a, &motor_a_cfg));
     ESP_LOGI(TAG, "Motor A initialised (gear ratio %u)", MOTOR_GEAR_RATIO);
 
     /* ── Initialise motor B (DRV8833 channel B) ─────────────────────────────── */
-    esp32_common_dc_motor_encoder_config_t motor_b_cfg =
-        esp32_common_dc_motor_encoder_default_config(
+    ecl_dc_motor_encoder_config_t motor_b_cfg =
+        ecl_dc_motor_encoder_default_config(
             PIN_BIN1, PIN_BIN2,
             GPIO_NUM_NC,            /* pwm pin overridden below */
             PIN_ENC_A_CH_B, PIN_ENC_B_CH_B);
@@ -204,7 +204,7 @@ void app_main(void)
     motor_b_cfg.motor.ledc_channel       = LEDC_CHANNEL_2;
     motor_b_cfg.gear_ratio               = MOTOR_GEAR_RATIO;
 
-    ESP_ERROR_CHECK(esp32_common_dc_motor_encoder_init(&s_motor_b, &motor_b_cfg));
+    ESP_ERROR_CHECK(ecl_dc_motor_encoder_init(&s_motor_b, &motor_b_cfg));
     ESP_LOGI(TAG, "Motor B initialised (gear ratio %u)", MOTOR_GEAR_RATIO);
 
     /* ── Start demo task ─────────────────────────────────────────────────────── */

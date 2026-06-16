@@ -31,17 +31,17 @@
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-void esp32_common_odometry_init(
-    esp32_common_odometry_t              *odom,
-    const esp32_common_odometry_config_t *config)
+void ecl_odometry_init(
+    ecl_odometry_t              *odom,
+    const ecl_odometry_config_t *config)
 {
     if (odom == NULL || config == NULL) return;
     odom->config = *config;
-    esp32_common_odometry_reset(odom);
+    ecl_odometry_reset(odom);
 }
 
-void esp32_common_odometry_update(
-    esp32_common_odometry_t *odom,
+void ecl_odometry_update(
+    ecl_odometry_t *odom,
     int32_t  delta_left,
     int32_t  delta_right,
     uint32_t ticks_per_rev)
@@ -72,15 +72,15 @@ void esp32_common_odometry_update(
     while (odom->pose.theta_rad <= -ODOMETRY_PI) odom->pose.theta_rad += ODOMETRY_TWO_PI;
 }
 
-void esp32_common_odometry_get_pose(
-    const esp32_common_odometry_t *odom,
-    esp32_common_pose_t           *pose)
+void ecl_odometry_get_pose(
+    const ecl_odometry_t *odom,
+    ecl_pose_t           *pose)
 {
     if (odom == NULL || pose == NULL) return;
     *pose = odom->pose;
 }
 
-void esp32_common_odometry_reset(esp32_common_odometry_t *odom)
+void ecl_odometry_reset(ecl_odometry_t *odom)
 {
     if (odom == NULL) return;
     odom->pose.x_m      = 0.0f;

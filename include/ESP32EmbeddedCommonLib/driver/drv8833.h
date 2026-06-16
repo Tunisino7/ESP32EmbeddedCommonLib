@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_DRV8833_H
-#define ESP32_EMBEDDED_COMMON_LIB_DRV8833_H
+#ifndef ECL_DRV8833_H
+#define ECL_DRV8833_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -15,27 +15,27 @@ extern "C" {
 
 /* ── DRV8833 chip constants ──────────────────────────────────────────────── */
 /** Number of independent H-bridge channels per DRV8833 chip. */
-#define ESP32_COMMON_DRV8833_CHANNELS         2U
+#define ECL_DRV8833_CHANNELS         2U
 /** Maximum continuous output current per channel (A, datasheet). */
-#define ESP32_COMMON_DRV8833_CURRENT_MAX_A    1.5f
+#define ECL_DRV8833_CURRENT_MAX_A    1.5f
 /** Peak output current per channel (A, datasheet). */
-#define ESP32_COMMON_DRV8833_CURRENT_PEAK_A   2.0f
+#define ECL_DRV8833_CURRENT_PEAK_A   2.0f
 /** Minimum motor supply voltage (V). */
-#define ESP32_COMMON_DRV8833_VM_MIN_V         2.7f
+#define ECL_DRV8833_VM_MIN_V         2.7f
 /** Maximum motor supply voltage (V). */
-#define ESP32_COMMON_DRV8833_VM_MAX_V         10.8f
+#define ECL_DRV8833_VM_MAX_V         10.8f
 
 /* ── PWM defaults ────────────────────────────────────────────────────────── */
-#define ESP32_COMMON_DRV8833_PWM_FREQ_HZ     10000U
-#define ESP32_COMMON_DRV8833_PWM_RESOLUTION  LEDC_TIMER_10_BIT
+#define ECL_DRV8833_PWM_FREQ_HZ     10000U
+#define ECL_DRV8833_PWM_RESOLUTION  LEDC_TIMER_10_BIT
 
 /**
  * @brief Identifies one of the two H-bridge channels on a DRV8833 chip.
  */
 typedef enum {
-    ESP32_COMMON_DRV8833_CHANNEL_A = 0, /**< AIN1 / AIN2 (motor A). */
-    ESP32_COMMON_DRV8833_CHANNEL_B = 1, /**< BIN1 / BIN2 (motor B). */
-} esp32_common_drv8833_channel_t;
+    ECL_DRV8833_CHANNEL_A = 0, /**< AIN1 / AIN2 (motor A). */
+    ECL_DRV8833_CHANNEL_B = 1, /**< BIN1 / BIN2 (motor B). */
+} ecl_drv8833_channel_t;
 
 /**
  * @brief Pin and LEDC assignments for one H-bridge channel.
@@ -49,7 +49,7 @@ typedef struct {
     gpio_num_t     pin_in2;      /**< xIN2 GPIO (AIN2 or BIN2).          */
     ledc_channel_t ledc_ch_in1;  /**< LEDC channel assigned to pin_in1.  */
     ledc_channel_t ledc_ch_in2;  /**< LEDC channel assigned to pin_in2.  */
-} esp32_common_drv8833_channel_cfg_t;
+} ecl_drv8833_channel_cfg_t;
 
 /**
  * @brief Chip-level configuration for one DRV8833.
@@ -72,23 +72,23 @@ typedef struct {
  * overcurrent or overtemperature.  Set pin_nfault = GPIO_NUM_NC if not used.
  */
 typedef struct {
-    esp32_common_drv8833_channel_cfg_t channel[ESP32_COMMON_DRV8833_CHANNELS];
+    ecl_drv8833_channel_cfg_t channel[ECL_DRV8833_CHANNELS];
     ledc_timer_t     ledc_timer;     /**< Shared LEDC timer for all 4 INx channels.      */
     uint32_t         pwm_freq_hz;    /**< PWM carrier frequency (Hz).                    */
     ledc_timer_bit_t pwm_resolution; /**< Duty-cycle bit-width.                          */
     bool             slow_decay;     /**< Decay mode: false = fast, true = slow.         */
     gpio_num_t       pin_nsleep;     /**< nSLEEP GPIO (active-LOW). GPIO_NUM_NC = N/C.   */
     gpio_num_t       pin_nfault;     /**< nFAULT GPIO (active-LOW in). GPIO_NUM_NC = N/C.*/
-} esp32_common_drv8833_config_t;
+} ecl_drv8833_config_t;
 
 /** Runtime state for one DRV8833 chip. */
 typedef struct {
-    esp32_common_drv8833_config_t config;
+    ecl_drv8833_config_t config;
     bool     initialized;
     bool     sleeping;
-    int8_t   speed[ESP32_COMMON_DRV8833_CHANNELS]; /**< Last commanded speed per channel. */
+    int8_t   speed[ECL_DRV8833_CHANNELS]; /**< Last commanded speed per channel. */
     uint32_t max_duty;                              /**< (1 << pwm_resolution) − 1.        */
-} esp32_common_drv8833_t;
+} ecl_drv8833_t;
 
 /**
  * @brief Build a default configuration for a DRV8833 chip.
@@ -102,7 +102,7 @@ typedef struct {
  * @param pin_ain1 AIN1 GPIO.  @param pin_ain2 AIN2 GPIO.
  * @param pin_bin1 BIN1 GPIO.  @param pin_bin2 BIN2 GPIO.
  */
-esp32_common_drv8833_config_t esp32_common_drv8833_default_config(
+ecl_drv8833_config_t ecl_drv8833_default_config(
     gpio_num_t pin_ain1, gpio_num_t pin_ain2,
     gpio_num_t pin_bin1, gpio_num_t pin_bin2
 );
@@ -116,9 +116,9 @@ esp32_common_drv8833_config_t esp32_common_drv8833_default_config(
  * @param drv     Pointer to an uninitialised instance.
  * @param config  Hardware configuration (copied into the instance).
  */
-esp_err_t esp32_common_drv8833_init(
-    esp32_common_drv8833_t              *drv,
-    const esp32_common_drv8833_config_t *config
+esp_err_t ecl_drv8833_init(
+    ecl_drv8833_t              *drv,
+    const ecl_drv8833_config_t *config
 );
 
 /**
@@ -128,9 +128,9 @@ esp_err_t esp32_common_drv8833_init(
  * @param ch        CHANNEL_A or CHANNEL_B.
  * @param speed_pct Speed [−100, +100] %. Positive = forward, negative = reverse.
  */
-esp_err_t esp32_common_drv8833_set_speed(
-    esp32_common_drv8833_t        *drv,
-    esp32_common_drv8833_channel_t ch,
+esp_err_t ecl_drv8833_set_speed(
+    ecl_drv8833_t        *drv,
+    ecl_drv8833_channel_t ch,
     int8_t speed_pct
 );
 
@@ -141,9 +141,9 @@ esp_err_t esp32_common_drv8833_set_speed(
  *   - false → coast (both INx = 0, Hi-Z output)
  *   - true  → active brake (both INx = 1, low-side recirculation)
  */
-esp_err_t esp32_common_drv8833_stop(
-    esp32_common_drv8833_t        *drv,
-    esp32_common_drv8833_channel_t ch
+esp_err_t ecl_drv8833_stop(
+    ecl_drv8833_t        *drv,
+    ecl_drv8833_channel_t ch
 );
 
 /**
@@ -152,14 +152,14 @@ esp_err_t esp32_common_drv8833_stop(
  * Both motor outputs become Hi-Z (coast) regardless of INx states.
  * No-op if pin_nsleep was not configured (GPIO_NUM_NC).
  */
-esp_err_t esp32_common_drv8833_sleep(esp32_common_drv8833_t *drv);
+esp_err_t ecl_drv8833_sleep(ecl_drv8833_t *drv);
 
 /**
  * @brief Deassert nSLEEP HIGH — wake the chip from sleep mode.
  *
  * No-op if pin_nsleep was not configured (GPIO_NUM_NC).
  */
-esp_err_t esp32_common_drv8833_wake(esp32_common_drv8833_t *drv);
+esp_err_t ecl_drv8833_wake(ecl_drv8833_t *drv);
 
 /**
  * @brief Read the nFAULT pin.
@@ -170,15 +170,15 @@ esp_err_t esp32_common_drv8833_wake(esp32_common_drv8833_t *drv);
  * @param fault  Output: true = fault active (nFAULT = LOW).
  * @return ESP_ERR_NOT_SUPPORTED if pin_nfault = GPIO_NUM_NC.
  */
-esp_err_t esp32_common_drv8833_is_fault(
-    const esp32_common_drv8833_t *drv,
+esp_err_t ecl_drv8833_is_fault(
+    const ecl_drv8833_t *drv,
     bool *fault
 );
 
 /**
  * @brief Stop both channels and release all LEDC resources.
  */
-esp_err_t esp32_common_drv8833_deinit(esp32_common_drv8833_t *drv);
+esp_err_t ecl_drv8833_deinit(ecl_drv8833_t *drv);
 
 /* ── H-bridge adapter ────────────────────────────────────────────────────── */
 
@@ -186,15 +186,15 @@ esp_err_t esp32_common_drv8833_deinit(esp32_common_drv8833_t *drv);
  * @brief Opaque per-channel context for the generic hbridge adapter.
  *
  * Allocate one instance per motor channel and keep it alive for as long as
- * the associated esp32_common_hbridge_t is in use.
+ * the associated ecl_hbridge_t is in use.
  */
 typedef struct {
-    esp32_common_drv8833_t        *drv;     /**< Pointer to the initialised DRV8833.   */
-    esp32_common_drv8833_channel_t channel; /**< H-bridge channel this motor uses.     */
-} esp32_common_drv8833_hbridge_ctx_t;
+    ecl_drv8833_t        *drv;     /**< Pointer to the initialised DRV8833.   */
+    ecl_drv8833_channel_t channel; /**< H-bridge channel this motor uses.     */
+} ecl_drv8833_hbridge_ctx_t;
 
 /**
- * @brief Bind one DRV8833 channel to a generic esp32_common_hbridge_t.
+ * @brief Bind one DRV8833 channel to a generic ecl_hbridge_t.
  *
  * Populates @p out with set_speed / stop callbacks that delegate to the
  * specified channel on @p drv.  The caller must allocate @p ctx and keep it
@@ -202,10 +202,10 @@ typedef struct {
  *
  * Usage:
  * @code
- *   static esp32_common_drv8833_hbridge_ctx_t ctx_left;
- *   static esp32_common_hbridge_t             hbridge_left;
- *   esp32_common_drv8833_bind_hbridge(
- *       &bridge, ESP32_COMMON_DRV8833_CHANNEL_A, &ctx_left, &hbridge_left);
+ *   static ecl_drv8833_hbridge_ctx_t ctx_left;
+ *   static ecl_hbridge_t             hbridge_left;
+ *   ecl_drv8833_bind_hbridge(
+ *       &bridge, ECL_DRV8833_CHANNEL_A, &ctx_left, &hbridge_left);
  * @endcode
  *
  * @param drv      Initialised DRV8833 instance.
@@ -214,15 +214,15 @@ typedef struct {
  * @param out      hbridge handle to populate.
  * @return ESP_ERR_INVALID_ARG if any pointer is NULL.
  */
-esp_err_t esp32_common_drv8833_bind_hbridge(
-    esp32_common_drv8833_t             *drv,
-    esp32_common_drv8833_channel_t      channel,
-    esp32_common_drv8833_hbridge_ctx_t *ctx,
-    esp32_common_hbridge_t             *out
+esp_err_t ecl_drv8833_bind_hbridge(
+    ecl_drv8833_t             *drv,
+    ecl_drv8833_channel_t      channel,
+    ecl_drv8833_hbridge_ctx_t *ctx,
+    ecl_hbridge_t             *out
 );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_DRV8833_H */
+#endif /* ECL_DRV8833_H */

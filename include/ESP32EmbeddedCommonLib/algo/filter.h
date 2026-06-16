@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_ALGO_FILTER_H
-#define ESP32_EMBEDDED_COMMON_LIB_ALGO_FILTER_H
+#ifndef ECL_ALGO_FILTER_H
+#define ECL_ALGO_FILTER_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -24,7 +24,7 @@ extern "C" {
 typedef struct {
     float alpha;  /**< Gyro weight [0, 1]. Higher = less accel noise, more drift.*/
     float angle;  /**< Current fused angle estimate (degrees).                  */
-} esp32_common_complementary_filter_t;
+} ecl_complementary_filter_t;
 
 /**
  * @brief Initialise the complementary filter.
@@ -33,8 +33,8 @@ typedef struct {
  * @param alpha          Gyro weight, typically 0.95–0.99.
  * @param initial_angle  Starting angle estimate (degrees).
  */
-void esp32_common_complementary_filter_init(
-    esp32_common_complementary_filter_t *f,
+void ecl_complementary_filter_init(
+    ecl_complementary_filter_t *f,
     float alpha,
     float initial_angle
 );
@@ -48,8 +48,8 @@ void esp32_common_complementary_filter_init(
  * @param dt_s           Time since last update (seconds).
  * @return               Fused angle estimate (degrees).
  */
-float esp32_common_complementary_filter_update(
-    esp32_common_complementary_filter_t *f,
+float ecl_complementary_filter_update(
+    ecl_complementary_filter_t *f,
     float gyro_dps,
     float accel_angle_deg,
     float dt_s
@@ -58,7 +58,7 @@ float esp32_common_complementary_filter_update(
 /* ── Moving-average filter ───────────────────────────────────────────────── */
 
 /** Maximum window size for the moving-average filter. Adjust as needed. */
-#define ESP32_COMMON_MOVING_AVG_MAX_WINDOW  32U
+#define ECL_MOVING_AVG_MAX_WINDOW  32U
 
 /**
  * @brief Circular-buffer moving-average filter.
@@ -67,12 +67,12 @@ float esp32_common_complementary_filter_update(
  * O(1) update: adds new sample, subtracts oldest, divides by window_size.
  */
 typedef struct {
-    float    buf[ESP32_COMMON_MOVING_AVG_MAX_WINDOW]; /**< Circular sample buffer.*/
+    float    buf[ECL_MOVING_AVG_MAX_WINDOW]; /**< Circular sample buffer.*/
     uint32_t window;   /**< Active window size (1 … MAX_WINDOW).                  */
     uint32_t head;     /**< Next write index.                                     */
     uint32_t count;    /**< Number of samples filled (saturates at window).       */
     float    sum;      /**< Running sum for O(1) mean.                            */
-} esp32_common_moving_avg_t;
+} ecl_moving_avg_t;
 
 /**
  * @brief Initialise the moving-average filter.
@@ -80,8 +80,8 @@ typedef struct {
  * @param f       Filter instance.
  * @param window  Number of samples to average (1 … MAX_WINDOW).
  */
-void esp32_common_moving_avg_init(
-    esp32_common_moving_avg_t *f,
+void ecl_moving_avg_init(
+    ecl_moving_avg_t *f,
     uint32_t window
 );
 
@@ -92,15 +92,15 @@ void esp32_common_moving_avg_init(
  * @param value  New sample.
  * @return       Running average over the window.
  */
-float esp32_common_moving_avg_update(
-    esp32_common_moving_avg_t *f,
+float ecl_moving_avg_update(
+    ecl_moving_avg_t *f,
     float value
 );
 
 /**
  * @brief Reset the filter (clears buffer and running sum).
  */
-void esp32_common_moving_avg_reset(esp32_common_moving_avg_t *f);
+void ecl_moving_avg_reset(ecl_moving_avg_t *f);
 
 /* ── Low-pass filter (single-pole IIR) ──────────────────────────────────── */
 
@@ -115,7 +115,7 @@ void esp32_common_moving_avg_reset(esp32_common_moving_avg_t *f);
 typedef struct {
     float alpha;  /**< Smoothing coefficient [0, 1].                           */
     float output; /**< Last filtered output.                                   */
-} esp32_common_lpf_t;
+} ecl_lpf_t;
 
 /**
  * @brief Initialise the low-pass filter.
@@ -124,8 +124,8 @@ typedef struct {
  * @param alpha          Smoothing coefficient (0 < alpha ≤ 1).
  * @param initial_value  Starting output value.
  */
-void esp32_common_lpf_init(
-    esp32_common_lpf_t *f,
+void ecl_lpf_init(
+    ecl_lpf_t *f,
     float alpha,
     float initial_value
 );
@@ -137,10 +137,10 @@ void esp32_common_lpf_init(
  * @param input  Raw input sample.
  * @return       Filtered output.
  */
-float esp32_common_lpf_update(esp32_common_lpf_t *f, float input);
+float ecl_lpf_update(ecl_lpf_t *f, float input);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_ALGO_FILTER_H */
+#endif /* ECL_ALGO_FILTER_H */

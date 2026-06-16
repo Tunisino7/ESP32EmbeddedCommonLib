@@ -19,8 +19,8 @@ static bool IRAM_ATTR encoder_pcnt_overflow_cb(
     void *user_data)
 {
     (void)unit;
-    esp32_common_dc_motor_encoder_t *enc =
-        (esp32_common_dc_motor_encoder_t *)user_data;
+    ecl_dc_motor_encoder_t *enc =
+        (ecl_dc_motor_encoder_t *)user_data;
 
     portENTER_CRITICAL_ISR(&enc->spinlock);
     enc->accum_pulses += (int64_t)edata->watch_point_val;
@@ -36,7 +36,7 @@ static bool IRAM_ATTR encoder_pcnt_overflow_cb(
  * critical section so that a mid-read overflow callback cannot split the two
  * values and produce an incorrect sum.
  */
-static int64_t encoder_get_total(esp32_common_dc_motor_encoder_t *motor)
+static int64_t encoder_get_total(ecl_dc_motor_encoder_t *motor)
 {
     int hw = 0;
 
@@ -50,26 +50,26 @@ static int64_t encoder_get_total(esp32_common_dc_motor_encoder_t *motor)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-esp32_common_dc_motor_encoder_config_t esp32_common_dc_motor_encoder_default_config(
+ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
     gpio_num_t pin_pwm,
     gpio_num_t pin_enc_a,
     gpio_num_t pin_enc_b)
 {
-    esp32_common_dc_motor_encoder_config_t cfg = {
-        .motor          = esp32_common_dc_motor_default_config(pin_in1, pin_in2, pin_pwm),
+    ecl_dc_motor_encoder_config_t cfg = {
+        .motor          = ecl_dc_motor_default_config(pin_in1, pin_in2, pin_pwm),
         .pin_enc_a      = pin_enc_a,
         .pin_enc_b      = pin_enc_b,
-        .pulses_per_rev = ESP32_COMMON_N20_MOTOR_PPR,
+        .pulses_per_rev = ECL_N20_MOTOR_PPR,
         .gear_ratio     = 1U,
     };
     return cfg;
 }
 
-esp_err_t esp32_common_dc_motor_encoder_init(
-    esp32_common_dc_motor_encoder_t              *motor,
-    const esp32_common_dc_motor_encoder_config_t *config)
+esp_err_t ecl_dc_motor_encoder_init(
+    ecl_dc_motor_encoder_t              *motor,
+    const ecl_dc_motor_encoder_config_t *config)
 {
     if (motor == NULL || config == NULL)  return ESP_ERR_INVALID_ARG;
     if (config->pin_enc_a == GPIO_NUM_NC) return ESP_ERR_INVALID_ARG;
@@ -86,24 +86,24 @@ esp_err_t esp32_common_dc_motor_encoder_init(
     motor->spinlock           = (portMUX_TYPE)portMUX_INITIALIZER_UNLOCKED;
 
     /* Initialise underlying H-bridge / LEDC motor driver. */
-    esp_err_t err = esp32_common_dc_motor_init(&motor->motor, &config->motor);
+    esp_err_t err = ecl_dc_motor_init(&motor->motor, &config->motor);
     if (err != ESP_OK) return err;
 
     /* PCNT unit with symmetric ±32767 hardware limits. */
     pcnt_unit_config_t unit_cfg = {
-        .high_limit = ESP32_COMMON_DC_MOTOR_ENCODER_PCNT_HIGH,
-        .low_limit  = ESP32_COMMON_DC_MOTOR_ENCODER_PCNT_LOW,
+        .high_limit = ECL_DC_MOTOR_ENCODER_PCNT_HIGH,
+        .low_limit  = ECL_DC_MOTOR_ENCODER_PCNT_LOW,
     };
     err = pcnt_new_unit(&unit_cfg, &motor->pcnt_unit);
     if (err != ESP_OK) goto fail_motor;
 
     /* Watch-points at the hardware limits trigger the accumulator callback. */
     err = pcnt_unit_add_watch_point(motor->pcnt_unit,
-                                    ESP32_COMMON_DC_MOTOR_ENCODER_PCNT_HIGH);
+                                    ECL_DC_MOTOR_ENCODER_PCNT_HIGH);
     if (err != ESP_OK) goto fail_unit;
 
     err = pcnt_unit_add_watch_point(motor->pcnt_unit,
-                                    ESP32_COMMON_DC_MOTOR_ENCODER_PCNT_LOW);
+                                    ECL_DC_MOTOR_ENCODER_PCNT_LOW);
     if (err != ESP_OK) goto fail_unit;
 
     /* Register overflow / underflow callback. */
@@ -195,27 +195,27 @@ fail_chan_a:
 fail_unit:
     pcnt_del_unit(motor->pcnt_unit);
 fail_motor:
-    esp32_common_dc_motor_deinit(&motor->motor);
+    ecl_dc_motor_deinit(&motor->motor);
     return err;
 }
 
-esp_err_t esp32_common_dc_motor_encoder_set_speed(
-    esp32_common_dc_motor_encoder_t *motor,
+esp_err_t ecl_dc_motor_encoder_set_speed(
+    ecl_dc_motor_encoder_t *motor,
     int8_t speed_pct)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
-    return esp32_common_dc_motor_set_speed(&motor->motor, speed_pct);
+    return ecl_dc_motor_set_speed(&motor->motor, speed_pct);
 }
 
-esp_err_t esp32_common_dc_motor_encoder_stop(
-    esp32_common_dc_motor_encoder_t *motor)
+esp_err_t ecl_dc_motor_encoder_stop(
+    ecl_dc_motor_encoder_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
-    return esp32_common_dc_motor_stop(&motor->motor);
+    return ecl_dc_motor_stop(&motor->motor);
 }
 
-esp_err_t esp32_common_dc_motor_encoder_get_pulses(
-    esp32_common_dc_motor_encoder_t *motor,
+esp_err_t ecl_dc_motor_encoder_get_pulses(
+    ecl_dc_motor_encoder_t *motor,
     int64_t *pulses)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
@@ -225,8 +225,8 @@ esp_err_t esp32_common_dc_motor_encoder_get_pulses(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_dc_motor_encoder_get_rpm(
-    esp32_common_dc_motor_encoder_t *motor,
+esp_err_t ecl_dc_motor_encoder_get_rpm(
+    ecl_dc_motor_encoder_t *motor,
     float *rpm)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
@@ -268,8 +268,8 @@ esp_err_t esp32_common_dc_motor_encoder_get_rpm(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_dc_motor_encoder_reset_count(
-    esp32_common_dc_motor_encoder_t *motor)
+esp_err_t ecl_dc_motor_encoder_reset_count(
+    ecl_dc_motor_encoder_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
@@ -285,12 +285,12 @@ esp_err_t esp32_common_dc_motor_encoder_reset_count(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_dc_motor_encoder_deinit(
-    esp32_common_dc_motor_encoder_t *motor)
+esp_err_t ecl_dc_motor_encoder_deinit(
+    ecl_dc_motor_encoder_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
-    esp_err_t err = esp32_common_dc_motor_encoder_stop(motor);
+    esp_err_t err = ecl_dc_motor_encoder_stop(motor);
     if (err != ESP_OK) return err;
 
     pcnt_unit_stop(motor->pcnt_unit);
@@ -303,7 +303,7 @@ esp_err_t esp32_common_dc_motor_encoder_deinit(
     pcnt_del_channel(motor->pcnt_chan_a);
     pcnt_del_unit(motor->pcnt_unit);
 
-    esp32_common_dc_motor_deinit(&motor->motor);
+    ecl_dc_motor_deinit(&motor->motor);
     motor->initialized = false;
     return ESP_OK;
 }

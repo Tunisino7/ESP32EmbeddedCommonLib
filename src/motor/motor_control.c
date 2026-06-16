@@ -1,7 +1,7 @@
 /*
  * motor_control.c — Chip-agnostic single-motor control with unit conversion
  *
- * Wraps any esp32_common_hbridge_t (vtable interface) and converts physical
+ * Wraps any ecl_hbridge_t (vtable interface) and converts physical
  * speed units to a duty-cycle percentage before delegating to the chip driver.
  *
  * Conversion chain:
@@ -30,10 +30,10 @@ static int8_t motor_ctrl_clamp_pct(float v)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-esp_err_t esp32_common_motor_control_init(
-    esp32_common_motor_control_t              *motor,
-    const esp32_common_hbridge_t              *hbridge,
-    const esp32_common_motor_control_config_t *config)
+esp_err_t ecl_motor_control_init(
+    ecl_motor_control_t              *motor,
+    const ecl_hbridge_t              *hbridge,
+    const ecl_motor_control_config_t *config)
 {
     if (motor == NULL || hbridge == NULL || config == NULL) return ESP_ERR_INVALID_ARG;
     if (hbridge->set_speed == NULL || hbridge->stop == NULL) return ESP_ERR_INVALID_ARG;
@@ -46,36 +46,36 @@ esp_err_t esp32_common_motor_control_init(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_motor_control_set_speed_pct(
-    esp32_common_motor_control_t *motor,
+esp_err_t ecl_motor_control_set_speed_pct(
+    ecl_motor_control_t *motor,
     int8_t pct)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
     return motor->hbridge.set_speed(motor->hbridge.ctx, pct);
 }
 
-esp_err_t esp32_common_motor_control_set_speed_rpm(
-    esp32_common_motor_control_t *motor,
+esp_err_t ecl_motor_control_set_speed_rpm(
+    ecl_motor_control_t *motor,
     float rpm)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
     int8_t pct = motor_ctrl_clamp_pct((rpm / motor->config.rpm_max) * 100.0f);
-    return esp32_common_motor_control_set_speed_pct(motor, pct);
+    return ecl_motor_control_set_speed_pct(motor, pct);
 }
 
-esp_err_t esp32_common_motor_control_set_speed_ms(
-    esp32_common_motor_control_t *motor,
+esp_err_t ecl_motor_control_set_speed_ms(
+    ecl_motor_control_t *motor,
     float ms)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
     /* v [m/s] → output-shaft RPM:  rpm = (v × 60) / (2π × r) */
     float rpm = (ms * 60.0f) / (MOTOR_CTRL_TWO_PI * motor->config.wheel_radius_m);
-    return esp32_common_motor_control_set_speed_rpm(motor, rpm);
+    return ecl_motor_control_set_speed_rpm(motor, rpm);
 }
 
-esp_err_t esp32_common_motor_control_stop(esp32_common_motor_control_t *motor)
+esp_err_t ecl_motor_control_stop(ecl_motor_control_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
     return motor->hbridge.stop(motor->hbridge.ctx);

@@ -41,18 +41,18 @@ static const char *TAG = "bmi160";
 
 /* ---- I2C helpers --------------------------------------------------------- */
 
-static esp_err_t bmi160_write(const esp32_common_bmi160_t *imu, uint8_t reg, uint8_t val) {
+static esp_err_t bmi160_write(const ecl_bmi160_t *imu, uint8_t reg, uint8_t val) {
     uint8_t buf[2] = {reg, val};
     return i2c_master_transmit(imu->dev_handle, buf, sizeof(buf), -1);
 }
 
-static esp_err_t bmi160_read(const esp32_common_bmi160_t *imu,
+static esp_err_t bmi160_read(const ecl_bmi160_t *imu,
                               uint8_t reg, uint8_t *data, size_t len) {
     return i2c_master_transmit_receive(imu->dev_handle, &reg, 1, data, len, -1);
 }
 
 /* Wait until cmd_rdy bit is set (BMI160 ready to accept a new CMD). */
-static esp_err_t bmi160_wait_cmd_ready(const esp32_common_bmi160_t *imu) {
+static esp_err_t bmi160_wait_cmd_ready(const ecl_bmi160_t *imu) {
     uint32_t elapsed_ms = 0;
     while (elapsed_ms < BMI160_CMD_POLL_TIMEOUT_MS) {
         uint8_t status = 0;
@@ -71,42 +71,42 @@ static esp_err_t bmi160_wait_cmd_ready(const esp32_common_bmi160_t *imu) {
 
 /* ---- scale factors ------------------------------------------------------- */
 
-static float accel_scale_from_range(esp32_common_bmi160_accel_range_t range) {
+static float accel_scale_from_range(ecl_bmi160_accel_range_t range) {
     switch (range) {
-        case ESP32_COMMON_BMI160_ACCEL_RANGE_2G:  return 1.0f / 16384.0f;
-        case ESP32_COMMON_BMI160_ACCEL_RANGE_4G:  return 1.0f / 8192.0f;
-        case ESP32_COMMON_BMI160_ACCEL_RANGE_8G:  return 1.0f / 4096.0f;
-        case ESP32_COMMON_BMI160_ACCEL_RANGE_16G: return 1.0f / 2048.0f;
+        case ECL_BMI160_ACCEL_RANGE_2G:  return 1.0f / 16384.0f;
+        case ECL_BMI160_ACCEL_RANGE_4G:  return 1.0f / 8192.0f;
+        case ECL_BMI160_ACCEL_RANGE_8G:  return 1.0f / 4096.0f;
+        case ECL_BMI160_ACCEL_RANGE_16G: return 1.0f / 2048.0f;
         default:                                   return 1.0f / 16384.0f;
     }
 }
 
-static float gyro_scale_from_range(esp32_common_bmi160_gyro_range_t range) {
+static float gyro_scale_from_range(ecl_bmi160_gyro_range_t range) {
     switch (range) {
-        case ESP32_COMMON_BMI160_GYRO_RANGE_2000DPS: return 1.0f / 16.4f;
-        case ESP32_COMMON_BMI160_GYRO_RANGE_1000DPS: return 1.0f / 32.8f;
-        case ESP32_COMMON_BMI160_GYRO_RANGE_500DPS:  return 1.0f / 65.6f;
-        case ESP32_COMMON_BMI160_GYRO_RANGE_250DPS:  return 1.0f / 131.2f;
-        case ESP32_COMMON_BMI160_GYRO_RANGE_125DPS:  return 1.0f / 262.4f;
+        case ECL_BMI160_GYRO_RANGE_2000DPS: return 1.0f / 16.4f;
+        case ECL_BMI160_GYRO_RANGE_1000DPS: return 1.0f / 32.8f;
+        case ECL_BMI160_GYRO_RANGE_500DPS:  return 1.0f / 65.6f;
+        case ECL_BMI160_GYRO_RANGE_250DPS:  return 1.0f / 131.2f;
+        case ECL_BMI160_GYRO_RANGE_125DPS:  return 1.0f / 262.4f;
         default:                                      return 1.0f / 131.2f;
     }
 }
 
 /* ---- public API ---------------------------------------------------------- */
 
-esp32_common_bmi160_config_t esp32_common_bmi160_default_config(i2c_master_bus_handle_t bus) {
-    esp32_common_bmi160_config_t config = {
+ecl_bmi160_config_t ecl_bmi160_default_config(i2c_master_bus_handle_t bus) {
+    ecl_bmi160_config_t config = {
         .bus         = bus,
-        .address     = ESP32_COMMON_BMI160_I2C_ADDR_PRIMARY,
-        .accel_range = ESP32_COMMON_BMI160_ACCEL_RANGE_2G,
-        .gyro_range  = ESP32_COMMON_BMI160_GYRO_RANGE_250DPS,
+        .address     = ECL_BMI160_I2C_ADDR_PRIMARY,
+        .accel_range = ECL_BMI160_ACCEL_RANGE_2G,
+        .gyro_range  = ECL_BMI160_GYRO_RANGE_250DPS,
     };
     return config;
 }
 
-esp_err_t esp32_common_bmi160_init(
-    esp32_common_bmi160_t              *imu,
-    const esp32_common_bmi160_config_t *config
+esp_err_t ecl_bmi160_init(
+    ecl_bmi160_t              *imu,
+    const ecl_bmi160_config_t *config
 ) {
     if (imu == NULL || config == NULL || config->bus == NULL) {
         return ESP_ERR_INVALID_ARG;
@@ -209,7 +209,7 @@ esp_err_t esp32_common_bmi160_init(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_bmi160_deinit(esp32_common_bmi160_t *imu) {
+esp_err_t ecl_bmi160_deinit(ecl_bmi160_t *imu) {
     if (imu == NULL || !imu->initialized) {
         return ESP_ERR_INVALID_STATE;
     }
@@ -223,9 +223,9 @@ esp_err_t esp32_common_bmi160_deinit(esp32_common_bmi160_t *imu) {
     return ESP_OK;
 }
 
-esp_err_t esp32_common_bmi160_read_accel(
-    const esp32_common_bmi160_t *imu,
-    esp32_common_bmi160_vec3_t  *accel_g
+esp_err_t ecl_bmi160_read_accel(
+    const ecl_bmi160_t *imu,
+    ecl_bmi160_vec3_t  *accel_g
 ) {
     if (imu == NULL || !imu->initialized || accel_g == NULL) {
         return ESP_ERR_INVALID_STATE;
@@ -244,9 +244,9 @@ esp_err_t esp32_common_bmi160_read_accel(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_bmi160_read_gyro(
-    const esp32_common_bmi160_t *imu,
-    esp32_common_bmi160_vec3_t  *gyro_dps
+esp_err_t ecl_bmi160_read_gyro(
+    const ecl_bmi160_t *imu,
+    ecl_bmi160_vec3_t  *gyro_dps
 ) {
     if (imu == NULL || !imu->initialized || gyro_dps == NULL) {
         return ESP_ERR_INVALID_STATE;

@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_ALGO_PID_H
-#define ESP32_EMBEDDED_COMMON_LIB_ALGO_PID_H
+#ifndef ECL_ALGO_PID_H
+#define ECL_ALGO_PID_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -34,7 +34,7 @@ typedef struct {
     float integral;       /**< Accumulated integral term.                      */
     float prev_measurement; /**< Previous measurement for derivative term.    */
     bool  first_update;   /**< true until first _update call (skips derivative).*/
-} esp32_common_pid_t;
+} ecl_pid_t;
 
 /**
  * @brief Initialise a PID controller.
@@ -47,8 +47,8 @@ typedef struct {
  * @param output_max      Upper output clamp.
  * @param integral_limit  Anti-windup integral clamp (absolute value).
  */
-void esp32_common_pid_init(
-    esp32_common_pid_t *pid,
+void ecl_pid_init(
+    ecl_pid_t *pid,
     float kp, float ki, float kd,
     float output_min, float output_max,
     float integral_limit
@@ -63,8 +63,8 @@ void esp32_common_pid_init(
  * @param dt_s         Time elapsed since last call (seconds).
  * @return             Controller output, clamped to [output_min, output_max].
  */
-float esp32_common_pid_update(
-    esp32_common_pid_t *pid,
+float ecl_pid_update(
+    ecl_pid_t *pid,
     float setpoint,
     float measurement,
     float dt_s
@@ -73,10 +73,10 @@ float esp32_common_pid_update(
 /**
  * @brief Reset integral and derivative state (e.g. on mode change).
  */
-void esp32_common_pid_reset(esp32_common_pid_t *pid);
+void ecl_pid_reset(ecl_pid_t *pid);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_ALGO_PID_H */
+#endif /* ECL_ALGO_PID_H */

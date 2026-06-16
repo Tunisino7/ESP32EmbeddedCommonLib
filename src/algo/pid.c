@@ -24,8 +24,8 @@
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-void esp32_common_pid_init(
-    esp32_common_pid_t *pid,
+void ecl_pid_init(
+    ecl_pid_t *pid,
     float kp, float ki, float kd,
     float output_min, float output_max,
     float integral_limit)
@@ -43,8 +43,8 @@ void esp32_common_pid_init(
     pid->first_update   = true;
 }
 
-float esp32_common_pid_update(
-    esp32_common_pid_t *pid,
+float ecl_pid_update(
+    ecl_pid_t *pid,
     float setpoint,
     float measurement,
     float dt_s)
@@ -81,7 +81,7 @@ float esp32_common_pid_update(
     return output;
 }
 
-void esp32_common_pid_reset(esp32_common_pid_t *pid)
+void ecl_pid_reset(ecl_pid_t *pid)
 {
     if (pid == NULL) return;
     pid->integral         = 0.0f;

@@ -30,8 +30,8 @@ static float mp_clampf(float v, float lo, float hi)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-void esp32_common_motion_profile_init(
-    esp32_common_motion_profile_t *mp,
+void ecl_motion_profile_init(
+    ecl_motion_profile_t *mp,
     float max_accel,
     float max_decel,
     float initial_vel)
@@ -46,16 +46,16 @@ void esp32_common_motion_profile_init(
     mp->target_vel  = initial_vel;
 }
 
-void esp32_common_motion_profile_set_target(
-    esp32_common_motion_profile_t *mp,
+void ecl_motion_profile_set_target(
+    ecl_motion_profile_t *mp,
     float target_vel)
 {
     if (mp == NULL) return;
     mp->target_vel = target_vel;
 }
 
-float esp32_common_motion_profile_update(
-    esp32_common_motion_profile_t *mp,
+float ecl_motion_profile_update(
+    ecl_motion_profile_t *mp,
     float dt_s)
 {
     if (mp == NULL || dt_s <= 0.0f) return 0.0f;
@@ -84,8 +84,8 @@ float esp32_common_motion_profile_update(
     return mp->current_vel;
 }
 
-bool esp32_common_motion_profile_is_settled(
-    const esp32_common_motion_profile_t *mp)
+bool ecl_motion_profile_is_settled(
+    const ecl_motion_profile_t *mp)
 {
     if (mp == NULL) return true;
     float diff = mp->target_vel - mp->current_vel;

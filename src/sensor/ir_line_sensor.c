@@ -1,7 +1,7 @@
 #include "ESP32EmbeddedCommonLib/sensor/ir_line_sensor.h"
 
 static esp_err_t ir_line_sensor_validate_config(
-    const esp32_common_ir_line_sensor_config_t *config
+    const ecl_ir_line_sensor_config_t *config
 ) {
     if (config == NULL) {
         return ESP_ERR_INVALID_ARG;
@@ -14,10 +14,10 @@ static esp_err_t ir_line_sensor_validate_config(
     return ESP_OK;
 }
 
-esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_default_config(
+ecl_ir_line_sensor_config_t ecl_ir_line_sensor_default_config(
     gpio_num_t digital_pin
 ) {
-    esp32_common_ir_line_sensor_config_t config = {
+    ecl_ir_line_sensor_config_t config = {
         .digital_pin    = digital_pin,
         .active_high    = false,
         .analog_enabled = false,
@@ -29,13 +29,13 @@ esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_default_config(
     return config;
 }
 
-esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_config_with_analog(
+ecl_ir_line_sensor_config_t ecl_ir_line_sensor_config_with_analog(
     gpio_num_t    digital_pin,
     bool          active_high,
     adc_unit_t    adc_unit,
     adc_channel_t adc_channel
 ) {
-    esp32_common_ir_line_sensor_config_t config = {
+    ecl_ir_line_sensor_config_t config = {
         .digital_pin    = digital_pin,
         .active_high    = active_high,
         .analog_enabled = true,
@@ -47,9 +47,9 @@ esp32_common_ir_line_sensor_config_t esp32_common_ir_line_sensor_config_with_ana
     return config;
 }
 
-esp_err_t esp32_common_ir_line_sensor_init(
-    esp32_common_ir_line_sensor_t *sensor,
-    const esp32_common_ir_line_sensor_config_t *config
+esp_err_t ecl_ir_line_sensor_init(
+    ecl_ir_line_sensor_t *sensor,
+    const ecl_ir_line_sensor_config_t *config
 ) {
     if (sensor == NULL) {
         return ESP_ERR_INVALID_ARG;
@@ -109,7 +109,7 @@ esp_err_t esp32_common_ir_line_sensor_init(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_ir_line_sensor_deinit(esp32_common_ir_line_sensor_t *sensor) {
+esp_err_t ecl_ir_line_sensor_deinit(ecl_ir_line_sensor_t *sensor) {
     if (sensor == NULL || !sensor->initialized) {
         return ESP_ERR_INVALID_STATE;
     }
@@ -127,8 +127,8 @@ esp_err_t esp32_common_ir_line_sensor_deinit(esp32_common_ir_line_sensor_t *sens
     return ESP_OK;
 }
 
-esp_err_t esp32_common_ir_line_sensor_read(
-    const esp32_common_ir_line_sensor_t *sensor,
+esp_err_t ecl_ir_line_sensor_read(
+    const ecl_ir_line_sensor_t *sensor,
     bool *detected
 ) {
     if (sensor == NULL || !sensor->initialized || detected == NULL) {
@@ -142,8 +142,8 @@ esp_err_t esp32_common_ir_line_sensor_read(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_ir_line_sensor_read_raw(
-    const esp32_common_ir_line_sensor_t *sensor,
+esp_err_t ecl_ir_line_sensor_read_raw(
+    const ecl_ir_line_sensor_t *sensor,
     int *raw
 ) {
     if (sensor == NULL || !sensor->initialized || raw == NULL) {

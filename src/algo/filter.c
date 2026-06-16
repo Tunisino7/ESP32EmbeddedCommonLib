@@ -27,8 +27,8 @@
 
 /* ── Complementary filter ────────────────────────────────────────────────── */
 
-void esp32_common_complementary_filter_init(
-    esp32_common_complementary_filter_t *f,
+void ecl_complementary_filter_init(
+    ecl_complementary_filter_t *f,
     float alpha,
     float initial_angle)
 {
@@ -39,8 +39,8 @@ void esp32_common_complementary_filter_init(
     f->angle = initial_angle;
 }
 
-float esp32_common_complementary_filter_update(
-    esp32_common_complementary_filter_t *f,
+float ecl_complementary_filter_update(
+    ecl_complementary_filter_t *f,
     float gyro_dps,
     float accel_angle_deg,
     float dt_s)
@@ -57,13 +57,13 @@ float esp32_common_complementary_filter_update(
 
 /* ── Moving-average filter ───────────────────────────────────────────────── */
 
-void esp32_common_moving_avg_init(
-    esp32_common_moving_avg_t *f,
+void ecl_moving_avg_init(
+    ecl_moving_avg_t *f,
     uint32_t window)
 {
     if (f == NULL) return;
     if (window == 0)                             window = 1;
-    if (window > ESP32_COMMON_MOVING_AVG_MAX_WINDOW) window = ESP32_COMMON_MOVING_AVG_MAX_WINDOW;
+    if (window > ECL_MOVING_AVG_MAX_WINDOW) window = ECL_MOVING_AVG_MAX_WINDOW;
 
     memset(f->buf, 0, sizeof(f->buf));
     f->window = window;
@@ -72,8 +72,8 @@ void esp32_common_moving_avg_init(
     f->sum    = 0.0f;
 }
 
-float esp32_common_moving_avg_update(
-    esp32_common_moving_avg_t *f,
+float ecl_moving_avg_update(
+    ecl_moving_avg_t *f,
     float value)
 {
     if (f == NULL) return 0.0f;
@@ -94,7 +94,7 @@ float esp32_common_moving_avg_update(
     return f->sum / (float)f->count;
 }
 
-void esp32_common_moving_avg_reset(esp32_common_moving_avg_t *f)
+void ecl_moving_avg_reset(ecl_moving_avg_t *f)
 {
     if (f == NULL) return;
     memset(f->buf, 0, sizeof(f->buf));
@@ -105,8 +105,8 @@ void esp32_common_moving_avg_reset(esp32_common_moving_avg_t *f)
 
 /* ── Low-pass filter ─────────────────────────────────────────────────────── */
 
-void esp32_common_lpf_init(
-    esp32_common_lpf_t *f,
+void ecl_lpf_init(
+    ecl_lpf_t *f,
     float alpha,
     float initial_value)
 {
@@ -117,7 +117,7 @@ void esp32_common_lpf_init(
     f->output = initial_value;
 }
 
-float esp32_common_lpf_update(esp32_common_lpf_t *f, float input)
+float ecl_lpf_update(ecl_lpf_t *f, float input)
 {
     if (f == NULL) return input;
     f->output = f->alpha * input + (1.0f - f->alpha) * f->output;

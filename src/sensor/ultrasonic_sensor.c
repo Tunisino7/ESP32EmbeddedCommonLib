@@ -19,7 +19,7 @@
 #include "esp_timer.h"
 
 static esp_err_t ultrasonic_sensor_validate_config(
-    const esp32_common_ultrasonic_sensor_config_t *config
+    const ecl_ultrasonic_sensor_config_t *config
 ) {
     if (config == NULL) {
         return ESP_ERR_INVALID_ARG;
@@ -37,7 +37,7 @@ static esp_err_t ultrasonic_sensor_validate_config(
 }
 
 static esp_err_t ultrasonic_sensor_trigger_measurement(
-    const esp32_common_ultrasonic_sensor_t *sensor
+    const ecl_ultrasonic_sensor_t *sensor
 ) {
     /* Step 1: ensure TRIGGER is low before the pulse (clean edge). */
     esp_err_t err = gpio_set_level(sensor->config.trigger_pin, 0);
@@ -58,7 +58,7 @@ static esp_err_t ultrasonic_sensor_trigger_measurement(
 }
 
 static esp_err_t ultrasonic_sensor_wait_for_echo_level(
-    const esp32_common_ultrasonic_sensor_t *sensor,
+    const ecl_ultrasonic_sensor_t *sensor,
     int level,
     int64_t timeout_at_us
 ) {
@@ -71,11 +71,11 @@ static esp_err_t ultrasonic_sensor_wait_for_echo_level(
     return ESP_OK;
 }
 
-esp32_common_ultrasonic_sensor_config_t esp32_common_ultrasonic_sensor_default_config(
+ecl_ultrasonic_sensor_config_t ecl_ultrasonic_sensor_default_config(
     gpio_num_t trigger_pin,
     gpio_num_t echo_pin
 ) {
-    esp32_common_ultrasonic_sensor_config_t config = {
+    ecl_ultrasonic_sensor_config_t config = {
         .trigger_pin = trigger_pin,
         .echo_pin = echo_pin,
         .timeout_us = 30000U,
@@ -85,9 +85,9 @@ esp32_common_ultrasonic_sensor_config_t esp32_common_ultrasonic_sensor_default_c
     return config;
 }
 
-esp_err_t esp32_common_ultrasonic_sensor_init(
-    esp32_common_ultrasonic_sensor_t *sensor,
-    const esp32_common_ultrasonic_sensor_config_t *config
+esp_err_t ecl_ultrasonic_sensor_init(
+    ecl_ultrasonic_sensor_t *sensor,
+    const ecl_ultrasonic_sensor_config_t *config
 ) {
     if (sensor == NULL) {
         return ESP_ERR_INVALID_ARG;
@@ -141,8 +141,8 @@ esp_err_t esp32_common_ultrasonic_sensor_init(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_ultrasonic_sensor_measure_pulse_us(
-    esp32_common_ultrasonic_sensor_t *sensor,
+esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
+    ecl_ultrasonic_sensor_t *sensor,
     uint32_t *pulse_width_us
 ) {
     if (sensor == NULL || pulse_width_us == NULL) {
@@ -180,8 +180,8 @@ esp_err_t esp32_common_ultrasonic_sensor_measure_pulse_us(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_ultrasonic_sensor_measure_distance_cm(
-    esp32_common_ultrasonic_sensor_t *sensor,
+esp_err_t ecl_ultrasonic_sensor_measure_distance_cm(
+    ecl_ultrasonic_sensor_t *sensor,
     float *distance_cm
 ) {
     if (distance_cm == NULL) {
@@ -189,7 +189,7 @@ esp_err_t esp32_common_ultrasonic_sensor_measure_distance_cm(
     }
 
     uint32_t pulse_width_us = 0U;
-    esp_err_t err = esp32_common_ultrasonic_sensor_measure_pulse_us(sensor, &pulse_width_us);
+    esp_err_t err = ecl_ultrasonic_sensor_measure_pulse_us(sensor, &pulse_width_us);
     if (err != ESP_OK) {
         return err;
     }

@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_MOTOR_CONTROL_H
-#define ESP32_EMBEDDED_COMMON_LIB_MOTOR_CONTROL_H
+#ifndef ECL_MOTOR_CONTROL_H
+#define ECL_MOTOR_CONTROL_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -23,37 +23,37 @@ extern "C" {
 typedef struct {
     float rpm_max;        /**< No-load output-shaft RPM at 100 % duty.          */
     float wheel_radius_m; /**< Driven wheel radius in metres.                   */
-} esp32_common_motor_control_config_t;
+} ecl_motor_control_config_t;
 
 /**
  * @brief Single-motor control handle.
  *
- * Wraps any esp32_common_hbridge_t with physical unit conversion.
+ * Wraps any ecl_hbridge_t with physical unit conversion.
  * Chip-agnostic: works with DRV8833, TB6612, L298N, or any other driver
- * that provides an esp32_common_hbridge_t adapter.
+ * that provides an ecl_hbridge_t adapter.
  *
  * Two instances (left, right) cover a differential-drive robot.
  */
 typedef struct {
-    esp32_common_hbridge_t              hbridge;     /**< Chip-agnostic motor interface. */
-    esp32_common_motor_control_config_t config;
+    ecl_hbridge_t              hbridge;     /**< Chip-agnostic motor interface. */
+    ecl_motor_control_config_t config;
     bool                                initialized;
-} esp32_common_motor_control_t;
+} ecl_motor_control_t;
 
 /**
  * @brief Initialise a motor control handle.
  *
- * The hbridge must already be bound (e.g. via esp32_common_drv8833_bind_hbridge)
+ * The hbridge must already be bound (e.g. via ecl_drv8833_bind_hbridge)
  * before calling this function.
  *
  * @param motor    Pointer to an uninitialised handle.
  * @param hbridge  Chip-agnostic H-bridge handle for this motor.
  * @param config   Physical parameters (rpm_max, wheel_radius_m).
  */
-esp_err_t esp32_common_motor_control_init(
-    esp32_common_motor_control_t              *motor,
-    const esp32_common_hbridge_t              *hbridge,
-    const esp32_common_motor_control_config_t *config
+esp_err_t ecl_motor_control_init(
+    ecl_motor_control_t              *motor,
+    const ecl_hbridge_t              *hbridge,
+    const ecl_motor_control_config_t *config
 );
 
 /**
@@ -62,8 +62,8 @@ esp_err_t esp32_common_motor_control_init(
  * @param motor  Initialised handle.
  * @param pct    Speed [-100, +100] %. Positive = forward, negative = reverse.
  */
-esp_err_t esp32_common_motor_control_set_speed_pct(
-    esp32_common_motor_control_t *motor,
+esp_err_t ecl_motor_control_set_speed_pct(
+    ecl_motor_control_t *motor,
     int8_t pct
 );
 
@@ -76,8 +76,8 @@ esp_err_t esp32_common_motor_control_set_speed_pct(
  * @param motor  Initialised handle.
  * @param rpm    Target RPM. Positive = forward.
  */
-esp_err_t esp32_common_motor_control_set_speed_rpm(
-    esp32_common_motor_control_t *motor,
+esp_err_t ecl_motor_control_set_speed_rpm(
+    ecl_motor_control_t *motor,
     float rpm
 );
 
@@ -90,18 +90,18 @@ esp_err_t esp32_common_motor_control_set_speed_rpm(
  * @param motor  Initialised handle.
  * @param ms     Target speed in m/s. Positive = forward.
  */
-esp_err_t esp32_common_motor_control_set_speed_ms(
-    esp32_common_motor_control_t *motor,
+esp_err_t ecl_motor_control_set_speed_ms(
+    ecl_motor_control_t *motor,
     float ms
 );
 
 /**
  * @brief Stop the motor (coast or brake per DRV8833 config.slow_decay).
  */
-esp_err_t esp32_common_motor_control_stop(esp32_common_motor_control_t *motor);
+esp_err_t ecl_motor_control_stop(ecl_motor_control_t *motor);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_MOTOR_CONTROL_H */
+#endif /* ECL_MOTOR_CONTROL_H */

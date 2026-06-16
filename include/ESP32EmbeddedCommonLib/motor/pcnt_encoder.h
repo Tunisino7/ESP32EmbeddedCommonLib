@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_PCNT_ENCODER_H
-#define ESP32_EMBEDDED_COMMON_LIB_PCNT_ENCODER_H
+#ifndef ECL_PCNT_ENCODER_H
+#define ECL_PCNT_ENCODER_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,8 +14,8 @@ extern "C" {
 #endif
 
 /* ── Hardware counter limits ─────────────────────────────────────────────── */
-#define ESP32_COMMON_PCNT_ENCODER_HIGH  32767
-#define ESP32_COMMON_PCNT_ENCODER_LOW  (-32768)
+#define ECL_PCNT_ENCODER_HIGH  32767
+#define ECL_PCNT_ENCODER_LOW  (-32768)
 
 /**
  * @brief Configuration for a quadrature (or single-channel) Hall encoder.
@@ -31,7 +31,7 @@ typedef struct {
     gpio_num_t pin_b;           /**< Encoder channel B. GPIO_NUM_NC = 2× mode.   */
     uint16_t   pulses_per_rev;  /**< PPR before gearbox.                         */
     uint16_t   gear_ratio;      /**< Gearbox reduction (1 = no gearbox).         */
-} esp32_common_pcnt_encoder_config_t;
+} ecl_pcnt_encoder_config_t;
 
 /**
  * @brief Runtime state for one encoder instance.
@@ -42,7 +42,7 @@ typedef struct {
  * ISR.
  */
 typedef struct {
-    esp32_common_pcnt_encoder_config_t config;
+    ecl_pcnt_encoder_config_t config;
     bool                  initialized;
     pcnt_unit_handle_t    pcnt_unit;
     pcnt_channel_handle_t pcnt_chan_a;
@@ -53,7 +53,7 @@ typedef struct {
     int64_t               rpm_ref_pulses;
     int64_t               rpm_ref_time_us;
     float                 rpm;            /**< Last computed output RPM. */
-} esp32_common_pcnt_encoder_t;
+} ecl_pcnt_encoder_t;
 
 /**
  * @brief Build a default configuration.
@@ -63,7 +63,7 @@ typedef struct {
  * @param pin_a Encoder channel A.
  * @param pin_b Encoder channel B (GPIO_NUM_NC for 2× mode).
  */
-esp32_common_pcnt_encoder_config_t esp32_common_pcnt_encoder_default_config(
+ecl_pcnt_encoder_config_t ecl_pcnt_encoder_default_config(
     gpio_num_t pin_a,
     gpio_num_t pin_b
 );
@@ -76,9 +76,9 @@ esp32_common_pcnt_encoder_config_t esp32_common_pcnt_encoder_default_config(
  * @param enc     Pointer to an uninitialised encoder instance.
  * @param config  Hardware configuration (copied into the instance).
  */
-esp_err_t esp32_common_pcnt_encoder_init(
-    esp32_common_pcnt_encoder_t              *enc,
-    const esp32_common_pcnt_encoder_config_t *config
+esp_err_t ecl_pcnt_encoder_init(
+    ecl_pcnt_encoder_t              *enc,
+    const ecl_pcnt_encoder_config_t *config
 );
 
 /**
@@ -89,8 +89,8 @@ esp_err_t esp32_common_pcnt_encoder_init(
  * @param enc     Initialised encoder.
  * @param pulses  Output: int64 overflow-safe count.
  */
-esp_err_t esp32_common_pcnt_encoder_get_pulses(
-    esp32_common_pcnt_encoder_t *enc,
+esp_err_t ecl_pcnt_encoder_get_pulses(
+    ecl_pcnt_encoder_t *enc,
     int64_t *pulses
 );
 
@@ -103,23 +103,23 @@ esp_err_t esp32_common_pcnt_encoder_get_pulses(
  * @param enc  Initialised encoder.
  * @param rpm  Output: output-shaft RPM (positive = forward).
  */
-esp_err_t esp32_common_pcnt_encoder_get_rpm(
-    esp32_common_pcnt_encoder_t *enc,
+esp_err_t ecl_pcnt_encoder_get_rpm(
+    ecl_pcnt_encoder_t *enc,
     float *rpm
 );
 
 /**
  * @brief Reset pulse accumulator, PCNT hardware counter, and RPM reference.
  */
-esp_err_t esp32_common_pcnt_encoder_reset(esp32_common_pcnt_encoder_t *enc);
+esp_err_t ecl_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc);
 
 /**
  * @brief Release all PCNT hardware resources.
  */
-esp_err_t esp32_common_pcnt_encoder_deinit(esp32_common_pcnt_encoder_t *enc);
+esp_err_t ecl_pcnt_encoder_deinit(ecl_pcnt_encoder_t *enc);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_PCNT_ENCODER_H */
+#endif /* ECL_PCNT_ENCODER_H */

@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_HBRIDGE_H
-#define ESP32_EMBEDDED_COMMON_LIB_HBRIDGE_H
+#ifndef ECL_HBRIDGE_H
+#define ECL_HBRIDGE_H
 
 #include "esp_err.h"
 
@@ -27,10 +27,10 @@ typedef struct {
     esp_err_t (*stop)(void *ctx);
     /** Opaque context pointer passed verbatim to set_speed() and stop(). */
     void *ctx;
-} esp32_common_hbridge_t;
+} ecl_hbridge_t;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_HBRIDGE_H */
+#endif /* ECL_HBRIDGE_H */

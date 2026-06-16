@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_DC_MOTOR_H
-#define ESP32_EMBEDDED_COMMON_LIB_DC_MOTOR_H
+#ifndef ECL_DC_MOTOR_H
+#define ECL_DC_MOTOR_H
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -14,15 +14,15 @@ extern "C" {
 
 /* ── TT DC motor specs (3–6 V, no encoder) ──────────────────────────────── */
 /** 1:48 gearbox reduction ratio. */
-#define ESP32_COMMON_TT_MOTOR_GEAR_RATIO   48U
+#define ECL_TT_MOTOR_GEAR_RATIO   48U
 /** Nominal no-load output shaft RPM at 6 V. */
-#define ESP32_COMMON_TT_MOTOR_RPM_AT_6V   200U
+#define ECL_TT_MOTOR_RPM_AT_6V   200U
 
 /* ── Driver defaults ─────────────────────────────────────────────────────── */
 /** Default PWM carrier frequency — above human hearing, safe for most motors. */
-#define ESP32_COMMON_DC_MOTOR_PWM_FREQ_HZ    10000U
+#define ECL_DC_MOTOR_PWM_FREQ_HZ    10000U
 /** 10-bit resolution → 1024 duty levels. */
-#define ESP32_COMMON_DC_MOTOR_PWM_RESOLUTION LEDC_TIMER_10_BIT
+#define ECL_DC_MOTOR_PWM_RESOLUTION LEDC_TIMER_10_BIT
 
 /**
  * @brief H-bridge wiring and LEDC configuration for one DC motor.
@@ -44,26 +44,26 @@ typedef struct {
     uint32_t         pwm_freq_hz;    /**< PWM frequency in Hz.                 */
     ledc_timer_bit_t pwm_resolution; /**< Duty-cycle bit-width.                */
     bool             brake_on_stop;  /**< true = active brake; false = coast.  */
-} esp32_common_dc_motor_config_t;
+} ecl_dc_motor_config_t;
 
 /** Runtime state for one DC motor instance. */
 typedef struct {
-    esp32_common_dc_motor_config_t config;
+    ecl_dc_motor_config_t config;
     bool   initialized;
     int8_t speed_pct; /**< Last commanded speed (−100 … +100 %). */
-} esp32_common_dc_motor_t;
+} ecl_dc_motor_t;
 
 /**
  * @brief Build a default configuration.
  *
  * Selects LEDC_TIMER_0 / LEDC_CHANNEL_0, 10 kHz, 10-bit, coast on stop.
- * Override any field before calling esp32_common_dc_motor_init().
+ * Override any field before calling ecl_dc_motor_init().
  *
  * @param pin_in1  H-bridge IN1 GPIO.
  * @param pin_in2  H-bridge IN2 GPIO.
  * @param pin_pwm  H-bridge PWM/EN GPIO.
  */
-esp32_common_dc_motor_config_t esp32_common_dc_motor_default_config(
+ecl_dc_motor_config_t ecl_dc_motor_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
     gpio_num_t pin_pwm
@@ -76,9 +76,9 @@ esp32_common_dc_motor_config_t esp32_common_dc_motor_default_config(
  * @param config  Hardware configuration (copied into the instance).
  * @return ESP_OK on success, ESP_ERR_INVALID_ARG if any argument is invalid.
  */
-esp_err_t esp32_common_dc_motor_init(
-    esp32_common_dc_motor_t              *motor,
-    const esp32_common_dc_motor_config_t *config
+esp_err_t ecl_dc_motor_init(
+    ecl_dc_motor_t              *motor,
+    const ecl_dc_motor_config_t *config
 );
 
 /**
@@ -89,23 +89,23 @@ esp_err_t esp32_common_dc_motor_init(
  *                  Positive = forward, negative = reverse, 0 = stop.
  * @return ESP_OK on success, ESP_ERR_INVALID_STATE if not initialised.
  */
-esp_err_t esp32_common_dc_motor_set_speed(
-    esp32_common_dc_motor_t *motor,
+esp_err_t ecl_dc_motor_set_speed(
+    ecl_dc_motor_t *motor,
     int8_t speed_pct
 );
 
 /**
  * @brief Stop the motor (coast or active brake depending on config.brake_on_stop).
  */
-esp_err_t esp32_common_dc_motor_stop(esp32_common_dc_motor_t *motor);
+esp_err_t ecl_dc_motor_stop(ecl_dc_motor_t *motor);
 
 /**
  * @brief Release LEDC resources and reset the instance.
  */
-esp_err_t esp32_common_dc_motor_deinit(esp32_common_dc_motor_t *motor);
+esp_err_t ecl_dc_motor_deinit(ecl_dc_motor_t *motor);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_DC_MOTOR_H */
+#endif /* ECL_DC_MOTOR_H */

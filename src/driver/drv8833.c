@@ -32,11 +32,11 @@ static esp_err_t drv8833_ledc_set(ledc_channel_t ch, uint32_t duty)
  *   Reverse at X%:  IN1 = max - duty, IN2 = max
  *   Stop:           IN1 = max,       IN2 = max  (active brake)
  */
-static esp_err_t drv8833_apply_speed(esp32_common_drv8833_t        *drv,
-                                      esp32_common_drv8833_channel_t ch,
+static esp_err_t drv8833_apply_speed(ecl_drv8833_t        *drv,
+                                      ecl_drv8833_channel_t ch,
                                       int8_t speed_pct)
 {
-    const esp32_common_drv8833_channel_cfg_t *cfg = &drv->config.channel[ch];
+    const ecl_drv8833_channel_cfg_t *cfg = &drv->config.channel[ch];
 
     bool     fwd     = (speed_pct >= 0);
     uint8_t  abs_pct = (uint8_t)(fwd ? speed_pct : -speed_pct);
@@ -59,19 +59,19 @@ static esp_err_t drv8833_apply_speed(esp32_common_drv8833_t        *drv,
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-esp32_common_drv8833_config_t esp32_common_drv8833_default_config(
+ecl_drv8833_config_t ecl_drv8833_default_config(
     gpio_num_t pin_ain1, gpio_num_t pin_ain2,
     gpio_num_t pin_bin1, gpio_num_t pin_bin2)
 {
-    esp32_common_drv8833_config_t cfg = {
+    ecl_drv8833_config_t cfg = {
         .channel = {
-            [ESP32_COMMON_DRV8833_CHANNEL_A] = {
+            [ECL_DRV8833_CHANNEL_A] = {
                 .pin_in1     = pin_ain1,
                 .pin_in2     = pin_ain2,
                 .ledc_ch_in1 = LEDC_CHANNEL_0,
                 .ledc_ch_in2 = LEDC_CHANNEL_1,
             },
-            [ESP32_COMMON_DRV8833_CHANNEL_B] = {
+            [ECL_DRV8833_CHANNEL_B] = {
                 .pin_in1     = pin_bin1,
                 .pin_in2     = pin_bin2,
                 .ledc_ch_in1 = LEDC_CHANNEL_2,
@@ -79,8 +79,8 @@ esp32_common_drv8833_config_t esp32_common_drv8833_default_config(
             },
         },
         .ledc_timer     = LEDC_TIMER_1,
-        .pwm_freq_hz    = ESP32_COMMON_DRV8833_PWM_FREQ_HZ,
-        .pwm_resolution = ESP32_COMMON_DRV8833_PWM_RESOLUTION,
+        .pwm_freq_hz    = ECL_DRV8833_PWM_FREQ_HZ,
+        .pwm_resolution = ECL_DRV8833_PWM_RESOLUTION,
         .slow_decay     = false,
         .pin_nsleep     = GPIO_NUM_NC,
         .pin_nfault     = GPIO_NUM_NC,
@@ -88,13 +88,13 @@ esp32_common_drv8833_config_t esp32_common_drv8833_default_config(
     return cfg;
 }
 
-esp_err_t esp32_common_drv8833_init(
-    esp32_common_drv8833_t              *drv,
-    const esp32_common_drv8833_config_t *config)
+esp_err_t ecl_drv8833_init(
+    ecl_drv8833_t              *drv,
+    const ecl_drv8833_config_t *config)
 {
     if (drv == NULL || config == NULL) return ESP_ERR_INVALID_ARG;
 
-    for (int i = 0; i < (int)ESP32_COMMON_DRV8833_CHANNELS; i++) {
+    for (int i = 0; i < (int)ECL_DRV8833_CHANNELS; i++) {
         if (config->channel[i].pin_in1 == GPIO_NUM_NC) return ESP_ERR_INVALID_ARG;
         if (config->channel[i].pin_in2 == GPIO_NUM_NC) return ESP_ERR_INVALID_ARG;
     }
@@ -147,8 +147,8 @@ esp_err_t esp32_common_drv8833_init(
     if (err != ESP_OK) return err;
 
     /* ── LEDC channels for all 4 INx pins ───────────────────────────────── */
-    for (int i = 0; i < (int)ESP32_COMMON_DRV8833_CHANNELS; i++) {
-        const esp32_common_drv8833_channel_cfg_t *ch = &config->channel[i];
+    for (int i = 0; i < (int)ECL_DRV8833_CHANNELS; i++) {
+        const ecl_drv8833_channel_cfg_t *ch = &config->channel[i];
 
         ledc_channel_config_t ch_in1 = {
             .speed_mode = LEDC_LOW_SPEED_MODE,
@@ -179,13 +179,13 @@ esp_err_t esp32_common_drv8833_init(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_drv8833_set_speed(
-    esp32_common_drv8833_t        *drv,
-    esp32_common_drv8833_channel_t ch,
+esp_err_t ecl_drv8833_set_speed(
+    ecl_drv8833_t        *drv,
+    ecl_drv8833_channel_t ch,
     int8_t speed_pct)
 {
     if (drv == NULL || !drv->initialized)           return ESP_ERR_INVALID_STATE;
-    if ((unsigned)ch >= ESP32_COMMON_DRV8833_CHANNELS) return ESP_ERR_INVALID_ARG;
+    if ((unsigned)ch >= ECL_DRV8833_CHANNELS) return ESP_ERR_INVALID_ARG;
 
     if (speed_pct >  100) speed_pct =  100;
     if (speed_pct < -100) speed_pct = -100;
@@ -197,12 +197,12 @@ esp_err_t esp32_common_drv8833_set_speed(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_drv8833_stop(
-    esp32_common_drv8833_t        *drv,
-    esp32_common_drv8833_channel_t ch)
+esp_err_t ecl_drv8833_stop(
+    ecl_drv8833_t        *drv,
+    ecl_drv8833_channel_t ch)
 {
     if (drv == NULL || !drv->initialized)           return ESP_ERR_INVALID_STATE;
-    if ((unsigned)ch >= ESP32_COMMON_DRV8833_CHANNELS) return ESP_ERR_INVALID_ARG;
+    if ((unsigned)ch >= ECL_DRV8833_CHANNELS) return ESP_ERR_INVALID_ARG;
 
     /*
      * speed_pct = 0 with slow_decay:
@@ -217,7 +217,7 @@ esp_err_t esp32_common_drv8833_stop(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_drv8833_sleep(esp32_common_drv8833_t *drv)
+esp_err_t ecl_drv8833_sleep(ecl_drv8833_t *drv)
 {
     if (drv == NULL || !drv->initialized)  return ESP_ERR_INVALID_STATE;
     if (drv->config.pin_nsleep == GPIO_NUM_NC) return ESP_OK; /* tied high, no-op */
@@ -229,7 +229,7 @@ esp_err_t esp32_common_drv8833_sleep(esp32_common_drv8833_t *drv)
     return ESP_OK;
 }
 
-esp_err_t esp32_common_drv8833_wake(esp32_common_drv8833_t *drv)
+esp_err_t ecl_drv8833_wake(ecl_drv8833_t *drv)
 {
     if (drv == NULL || !drv->initialized)  return ESP_ERR_INVALID_STATE;
     if (drv->config.pin_nsleep == GPIO_NUM_NC) return ESP_OK;
@@ -241,8 +241,8 @@ esp_err_t esp32_common_drv8833_wake(esp32_common_drv8833_t *drv)
     return ESP_OK;
 }
 
-esp_err_t esp32_common_drv8833_is_fault(
-    const esp32_common_drv8833_t *drv,
+esp_err_t ecl_drv8833_is_fault(
+    const ecl_drv8833_t *drv,
     bool *fault)
 {
     if (drv == NULL || !drv->initialized) return ESP_ERR_INVALID_STATE;
@@ -254,12 +254,12 @@ esp_err_t esp32_common_drv8833_is_fault(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_drv8833_deinit(esp32_common_drv8833_t *drv)
+esp_err_t ecl_drv8833_deinit(ecl_drv8833_t *drv)
 {
     if (drv == NULL || !drv->initialized) return ESP_ERR_INVALID_STATE;
 
-    for (int i = 0; i < (int)ESP32_COMMON_DRV8833_CHANNELS; i++) {
-        (void)drv8833_apply_speed(drv, (esp32_common_drv8833_channel_t)i, 0);
+    for (int i = 0; i < (int)ECL_DRV8833_CHANNELS; i++) {
+        (void)drv8833_apply_speed(drv, (ecl_drv8833_channel_t)i, 0);
         ledc_stop(LEDC_LOW_SPEED_MODE, drv->config.channel[i].ledc_ch_in1, 0);
         ledc_stop(LEDC_LOW_SPEED_MODE, drv->config.channel[i].ledc_ch_in2, 0);
     }
@@ -278,23 +278,23 @@ esp_err_t esp32_common_drv8833_deinit(esp32_common_drv8833_t *drv)
 
 static esp_err_t drv8833_hb_set_speed(void *ctx, int8_t speed_pct)
 {
-    const esp32_common_drv8833_hbridge_ctx_t *c =
-        (const esp32_common_drv8833_hbridge_ctx_t *)ctx;
-    return esp32_common_drv8833_set_speed(c->drv, c->channel, speed_pct);
+    const ecl_drv8833_hbridge_ctx_t *c =
+        (const ecl_drv8833_hbridge_ctx_t *)ctx;
+    return ecl_drv8833_set_speed(c->drv, c->channel, speed_pct);
 }
 
 static esp_err_t drv8833_hb_stop(void *ctx)
 {
-    const esp32_common_drv8833_hbridge_ctx_t *c =
-        (const esp32_common_drv8833_hbridge_ctx_t *)ctx;
-    return esp32_common_drv8833_stop(c->drv, c->channel);
+    const ecl_drv8833_hbridge_ctx_t *c =
+        (const ecl_drv8833_hbridge_ctx_t *)ctx;
+    return ecl_drv8833_stop(c->drv, c->channel);
 }
 
-esp_err_t esp32_common_drv8833_bind_hbridge(
-    esp32_common_drv8833_t             *drv,
-    esp32_common_drv8833_channel_t      channel,
-    esp32_common_drv8833_hbridge_ctx_t *ctx,
-    esp32_common_hbridge_t             *out)
+esp_err_t ecl_drv8833_bind_hbridge(
+    ecl_drv8833_t             *drv,
+    ecl_drv8833_channel_t      channel,
+    ecl_drv8833_hbridge_ctx_t *ctx,
+    ecl_hbridge_t             *out)
 {
     if (drv == NULL || ctx == NULL || out == NULL) return ESP_ERR_INVALID_ARG;
 

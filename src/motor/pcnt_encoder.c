@@ -13,7 +13,7 @@ static bool IRAM_ATTR pcnt_encoder_overflow_cb(
     void *user_data)
 {
     (void)unit;
-    esp32_common_pcnt_encoder_t *enc = (esp32_common_pcnt_encoder_t *)user_data;
+    ecl_pcnt_encoder_t *enc = (ecl_pcnt_encoder_t *)user_data;
 
     portENTER_CRITICAL_ISR(&enc->spinlock);
     enc->accum_pulses += (int64_t)edata->watch_point_val;
@@ -24,7 +24,7 @@ static bool IRAM_ATTR pcnt_encoder_overflow_cb(
 
 /* ── Private: atomic snapshot ────────────────────────────────────────────── */
 
-static int64_t pcnt_encoder_total(esp32_common_pcnt_encoder_t *enc)
+static int64_t pcnt_encoder_total(ecl_pcnt_encoder_t *enc)
 {
     int hw = 0;
 
@@ -38,11 +38,11 @@ static int64_t pcnt_encoder_total(esp32_common_pcnt_encoder_t *enc)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
-esp32_common_pcnt_encoder_config_t esp32_common_pcnt_encoder_default_config(
+ecl_pcnt_encoder_config_t ecl_pcnt_encoder_default_config(
     gpio_num_t pin_a,
     gpio_num_t pin_b)
 {
-    esp32_common_pcnt_encoder_config_t cfg = {
+    ecl_pcnt_encoder_config_t cfg = {
         .pin_a          = pin_a,
         .pin_b          = pin_b,
         .pulses_per_rev = 7U,   /* N20 Hall PPR */
@@ -51,9 +51,9 @@ esp32_common_pcnt_encoder_config_t esp32_common_pcnt_encoder_default_config(
     return cfg;
 }
 
-esp_err_t esp32_common_pcnt_encoder_init(
-    esp32_common_pcnt_encoder_t              *enc,
-    const esp32_common_pcnt_encoder_config_t *config)
+esp_err_t ecl_pcnt_encoder_init(
+    ecl_pcnt_encoder_t              *enc,
+    const ecl_pcnt_encoder_config_t *config)
 {
     if (enc == NULL || config == NULL)   return ESP_ERR_INVALID_ARG;
     if (config->pin_a == GPIO_NUM_NC)    return ESP_ERR_INVALID_ARG;
@@ -71,17 +71,17 @@ esp_err_t esp32_common_pcnt_encoder_init(
 
     /* PCNT unit */
     pcnt_unit_config_t unit_cfg = {
-        .high_limit = ESP32_COMMON_PCNT_ENCODER_HIGH,
-        .low_limit  = ESP32_COMMON_PCNT_ENCODER_LOW,
+        .high_limit = ECL_PCNT_ENCODER_HIGH,
+        .low_limit  = ECL_PCNT_ENCODER_LOW,
     };
     esp_err_t err = pcnt_new_unit(&unit_cfg, &enc->pcnt_unit);
     if (err != ESP_OK) return err;
 
     /* Watch-points at hardware limits */
-    err = pcnt_unit_add_watch_point(enc->pcnt_unit, ESP32_COMMON_PCNT_ENCODER_HIGH);
+    err = pcnt_unit_add_watch_point(enc->pcnt_unit, ECL_PCNT_ENCODER_HIGH);
     if (err != ESP_OK) goto fail_unit;
 
-    err = pcnt_unit_add_watch_point(enc->pcnt_unit, ESP32_COMMON_PCNT_ENCODER_LOW);
+    err = pcnt_unit_add_watch_point(enc->pcnt_unit, ECL_PCNT_ENCODER_LOW);
     if (err != ESP_OK) goto fail_unit;
 
     /* Overflow callback */
@@ -163,8 +163,8 @@ fail_unit:
     return err;
 }
 
-esp_err_t esp32_common_pcnt_encoder_get_pulses(
-    esp32_common_pcnt_encoder_t *enc,
+esp_err_t ecl_pcnt_encoder_get_pulses(
+    ecl_pcnt_encoder_t *enc,
     int64_t *pulses)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
@@ -174,8 +174,8 @@ esp_err_t esp32_common_pcnt_encoder_get_pulses(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_pcnt_encoder_get_rpm(
-    esp32_common_pcnt_encoder_t *enc,
+esp_err_t ecl_pcnt_encoder_get_rpm(
+    ecl_pcnt_encoder_t *enc,
     float *rpm)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
@@ -211,7 +211,7 @@ esp_err_t esp32_common_pcnt_encoder_get_rpm(
     return ESP_OK;
 }
 
-esp_err_t esp32_common_pcnt_encoder_reset(esp32_common_pcnt_encoder_t *enc)
+esp_err_t ecl_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
 
@@ -227,7 +227,7 @@ esp_err_t esp32_common_pcnt_encoder_reset(esp32_common_pcnt_encoder_t *enc)
     return ESP_OK;
 }
 
-esp_err_t esp32_common_pcnt_encoder_deinit(esp32_common_pcnt_encoder_t *enc)
+esp_err_t ecl_pcnt_encoder_deinit(ecl_pcnt_encoder_t *enc)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
 

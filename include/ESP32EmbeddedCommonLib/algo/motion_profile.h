@@ -1,5 +1,5 @@
-#ifndef ESP32_EMBEDDED_COMMON_LIB_ALGO_MOTION_PROFILE_H
-#define ESP32_EMBEDDED_COMMON_LIB_ALGO_MOTION_PROFILE_H
+#ifndef ECL_ALGO_MOTION_PROFILE_H
+#define ECL_ALGO_MOTION_PROFILE_H
 
 #include <stdbool.h>
 
@@ -17,7 +17,7 @@ extern "C" {
  *
  * Useful for avoiding wheel slip and mechanical shock on start/stop.
  *
- * Call esp32_common_motion_profile_update() at a fixed rate to get the next
+ * Call ecl_motion_profile_update() at a fixed rate to get the next
  * velocity setpoint.
  */
 typedef struct {
@@ -25,7 +25,7 @@ typedef struct {
     float max_decel;    /**< Maximum deceleration magnitude (units/s²).       */
     float current_vel;  /**< Current velocity output (units/s).               */
     float target_vel;   /**< Desired final velocity (units/s).                */
-} esp32_common_motion_profile_t;
+} ecl_motion_profile_t;
 
 /**
  * @brief Initialise a motion profile.
@@ -35,8 +35,8 @@ typedef struct {
  * @param max_decel    Maximum deceleration (must be > 0).
  * @param initial_vel  Starting velocity (current actual velocity).
  */
-void esp32_common_motion_profile_init(
-    esp32_common_motion_profile_t *mp,
+void ecl_motion_profile_init(
+    ecl_motion_profile_t *mp,
     float max_accel,
     float max_decel,
     float initial_vel
@@ -51,8 +51,8 @@ void esp32_common_motion_profile_init(
  * @param mp          Initialised profile.
  * @param target_vel  Desired velocity (same units as max_accel).
  */
-void esp32_common_motion_profile_set_target(
-    esp32_common_motion_profile_t *mp,
+void ecl_motion_profile_set_target(
+    ecl_motion_profile_t *mp,
     float target_vel
 );
 
@@ -63,20 +63,20 @@ void esp32_common_motion_profile_set_target(
  * @param dt_s  Time elapsed since the last call (seconds).
  * @return      Velocity setpoint for this time step.
  */
-float esp32_common_motion_profile_update(
-    esp32_common_motion_profile_t *mp,
+float ecl_motion_profile_update(
+    ecl_motion_profile_t *mp,
     float dt_s
 );
 
 /**
  * @brief Returns true when current_vel == target_vel (profile settled).
  */
-bool esp32_common_motion_profile_is_settled(
-    const esp32_common_motion_profile_t *mp
+bool ecl_motion_profile_is_settled(
+    const ecl_motion_profile_t *mp
 );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* ESP32_EMBEDDED_COMMON_LIB_ALGO_MOTION_PROFILE_H */
+#endif /* ECL_ALGO_MOTION_PROFILE_H */
