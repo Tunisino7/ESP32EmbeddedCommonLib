@@ -11,23 +11,29 @@ static const char *TAG = "bmi160";
 #define BMI160_REG_CHIP_ID    0x00U
 #define BMI160_CHIP_ID        0xD1U
 
+#define BMI160_REG_PMU_STATUS 0x03U  /* power mode status */
+
 /* Gyro data: Gx_L Gx_H Gy_L Gy_H Gz_L Gz_H  (6 bytes) */
 #define BMI160_REG_GYRO_DATA  0x0CU
 /* Accel data: Ax_L Ax_H Ay_L Ay_H Az_L Az_H  (6 bytes) */
 #define BMI160_REG_ACCEL_DATA 0x12U
 
+#define BMI160_REG_GYR_CONF   0x42U  /* gyro ODR + BWP */
 #define BMI160_REG_ACC_RANGE  0x41U
 #define BMI160_REG_GYR_RANGE  0x43U
 #define BMI160_REG_CMD        0x7EU
+
+/* PMU_STATUS bit masks */
+#define BMI160_PMU_GYR_NORMAL 0x04U  /* bits [3:2] = 01 */
 
 #define BMI160_CMD_SOFTRESET  0xB6U
 #define BMI160_CMD_ACC_NORMAL 0x11U
 #define BMI160_CMD_GYR_NORMAL 0x15U
 
 /* Startup delays per datasheet */
-#define BMI160_SOFTRESET_DELAY_MS 10U
-#define BMI160_ACC_STARTUP_MS      5U
-#define BMI160_GYR_STARTUP_MS     81U
+#define BMI160_SOFTRESET_DELAY_MS  10U
+#define BMI160_ACC_STARTUP_MS       5U
+#define BMI160_GYR_STARTUP_MS     100U /* datasheet max; 81 ms typical */
 
 /* ---- I2C helpers --------------------------------------------------------- */
 
@@ -137,6 +143,20 @@ esp_err_t esp32_common_bmi160_init(
     }
     vTaskDelay(pdMS_TO_TICKS(BMI160_GYR_STARTUP_MS));
 
+    /* Verify gyro is in normal power mode */
+    uint8_t pmu_status = 0;
+    err = bmi160_read(imu, BMI160_REG_PMU_STATUS, &pmu_status, 1);
+    if (err != ESP_OK) {
+        i2c_master_bus_rm_device(imu->dev_handle);
+        return err;
+    }
+    ESP_LOGI(TAG, "PMU_STATUS = 0x%02X (gyro bits[3:2] should be 01 = 0x04)", pmu_status);
+    if ((pmu_status & 0x0CU) != BMI160_PMU_GYR_NORMAL) {
+        ESP_LOGE(TAG, "Gyro did not enter normal mode (PMU_STATUS=0x%02X)", pmu_status);
+        i2c_master_bus_rm_device(imu->dev_handle);
+        return ESP_ERR_INVALID_STATE;
+    }
+
     /* Set measurement ranges */
     err = bmi160_write(imu, BMI160_REG_ACC_RANGE, (uint8_t)config->accel_range);
     if (err != ESP_OK) {
@@ -209,6 +229,11 @@ esp_err_t esp32_common_bmi160_read_gyro(
     gyro_dps->x = (float)(int16_t)((buf[1] << 8) | buf[0]) * imu->gyro_scale;
     gyro_dps->y = (float)(int16_t)((buf[3] << 8) | buf[2]) * imu->gyro_scale;
     gyro_dps->z = (float)(int16_t)((buf[5] << 8) | buf[4]) * imu->gyro_scale;
+
+    ESP_LOGD(TAG, "Gyro raw: x=%d y=%d z=%d",
+             (int16_t)((buf[1] << 8) | buf[0]),
+             (int16_t)((buf[3] << 8) | buf[2]),
+             (int16_t)((buf[5] << 8) | buf[4]));
 
     return ESP_OK;
 }
