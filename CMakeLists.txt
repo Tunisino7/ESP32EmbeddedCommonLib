@@ -3,6 +3,7 @@ if(ESP_PLATFORM)
     idf_component_register(
         SRCS
             "src/ultrasonic_sensor.c"
+            "src/led.c"
         INCLUDE_DIRS
             "include"
         REQUIRES
@@ -17,6 +18,7 @@ else()
 
     add_library(ESP32EmbeddedCommonLib STATIC
         src/ultrasonic_sensor.c
+        src/led.c
     )
 
     target_include_directories(ESP32EmbeddedCommonLib

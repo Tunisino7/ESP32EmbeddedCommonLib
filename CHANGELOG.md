@@ -9,6 +9,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.1.0] - 2026-06-16
 
 ### Added
+
 - `ultrasonic_sensor`: blocking HC-SR04 driver using ESP-IDF GPIO and `esp_timer`
   - `esp32_common_ultrasonic_sensor_default_config()` – sensible defaults (30 ms timeout, 343.2 m/s)
   - `esp32_common_ultrasonic_sensor_init()` – GPIO pin configuration
