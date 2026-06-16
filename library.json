@@ -1,0 +1,27 @@
+{
+  "name": "ESP32EmbeddedCommonLib",
+  "version": "0.1.0",
+  "description": "Common ESP32 ESP-IDF components for embedded projects.",
+  "keywords": [
+    "esp32",
+    "esp-idf",
+    "platformio",
+    "ultrasonic",
+    "hcsr04"
+  ],
+  "authors": [
+    {
+      "name": "Lotfi Ben Taleb"
+    }
+  ],
+  "frameworks": [
+    "espidf"
+  ],
+  "platforms": [
+    "espressif32"
+  ],
+  "build": {
+    "includeDir": "include",
+    "srcDir": "src"
+  }
+}

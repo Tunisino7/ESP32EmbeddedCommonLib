@@ -1,0 +1,5 @@
+version: "0.1.0"
+description: Common ESP32 ESP-IDF components for embedded projects (pure C)
+
+dependencies:
+  idf: ">=5.0"
