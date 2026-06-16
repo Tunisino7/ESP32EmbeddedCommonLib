@@ -5,6 +5,7 @@ if(ESP_PLATFORM)
             "src/ultrasonic_sensor.c"
             "src/led.c"
             "src/ir_line_sensor.c"
+            "src/bmi160.c"
         INCLUDE_DIRS
             "include"
         REQUIRES
@@ -12,6 +13,7 @@ if(ESP_PLATFORM)
             esp_timer
             esp_rom
             esp_adc
+            esp_driver_i2c
     )
 else()
     # Building as a standalone CMake library (unit tests, host tooling, etc.).
@@ -22,6 +24,7 @@ else()
         src/ultrasonic_sensor.c
         src/led.c
         src/ir_line_sensor.c
+        src/bmi160.c
     )
 
     target_include_directories(ESP32EmbeddedCommonLib
