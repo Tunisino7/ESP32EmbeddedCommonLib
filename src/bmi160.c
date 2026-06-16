@@ -1,7 +1,10 @@
 #include "ESP32EmbeddedCommonLib/bmi160.h"
 
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+static const char *TAG = "bmi160";
 
 /* ---- register map -------------------------------------------------------- */
 
@@ -106,9 +109,16 @@ esp_err_t esp32_common_bmi160_init(
     /* Verify chip ID */
     uint8_t chip_id = 0;
     err = bmi160_read(imu, BMI160_REG_CHIP_ID, &chip_id, 1);
-    if (err != ESP_OK || chip_id != BMI160_CHIP_ID) {
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Chip ID read failed: %s", esp_err_to_name(err));
         i2c_master_bus_rm_device(imu->dev_handle);
-        return (err == ESP_OK) ? ESP_ERR_NOT_FOUND : err;
+        return err;
+    }
+    if (chip_id != BMI160_CHIP_ID) {
+        ESP_LOGE(TAG, "Wrong chip ID: got 0x%02X, expected 0x%02X. Check wiring and I2C address.",
+                 chip_id, BMI160_CHIP_ID);
+        i2c_master_bus_rm_device(imu->dev_handle);
+        return ESP_ERR_NOT_FOUND;
     }
 
     /* Power up accelerometer */
