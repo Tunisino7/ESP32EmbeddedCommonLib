@@ -1,10 +1,25 @@
+/*
+ * odometry.c — Differential-drive dead-reckoning odometry
+ *
+ * Estimates the robot's 2-D pose (x, y, θ) from wheel encoder tick deltas.
+ *
+ * Kinematics (per time step):
+ *   dl, dr   = left / right wheel arc lengths (metres)
+ *   dc       = (dl + dr) / 2          — distance travelled by robot centre
+ *   dθ       = (dr − dl) / wheel_base  — change in heading
+ *
+ * Integration uses the mid-point heading (θ + dθ/2) to reduce error
+ * compared to using the start-of-step heading.
+ *
+ * Limitations:
+ *   - Dead reckoning accumulates error over time; use IMU fusion or
+ *     external position fixes to correct drift.
+ *   - Assumes no wheel slip.  Slip causes systematic drift in θ.
+ */
 #include "ESP32EmbeddedCommonLib/algo/odometry.h"
 
+#include <math.h>
 #include <stddef.h>
-#include <string.h>
-
-/* Avoid M_PI — define locally. */
-#define ODOMETRY_TWO_PI  6.28318530717958647692f
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
@@ -25,43 +40,28 @@ void esp32_common_odometry_update(
 {
     if (odom == NULL || ticks_per_rev == 0) return;
 
-    /* Convert ticks → arc lengths (metres). */
-    float metres_per_tick = (ODOMETRY_TWO_PI * odom->config.wheel_radius_m)
+    /* Wheel circumference / ticks_per_rev gives metres per tick. */
+    float metres_per_tick = (2.0f * (float)M_PI * odom->config.wheel_radius_m)
                             / (float)ticks_per_rev;
-    float dl = (float)delta_left  * metres_per_tick;
-    float dr = (float)delta_right * metres_per_tick;
+    float dl = (float)delta_left  * metres_per_tick;  /* left arc length  */
+    float dr = (float)delta_right * metres_per_tick;  /* right arc length */
 
-    /* Centre arc and heading change. */
-    float dc    = (dl + dr) * 0.5f;
+    /* Robot centre arc and heading change from differential kinematics. */
+    float dc     = (dl + dr) * 0.5f;
     float dtheta = (dr - dl) / odom->config.wheel_base_m;
 
-    /* Integrate pose using mid-point heading. */
+    /* Mid-point integration: heading at the midpoint of the step reduces
+     * the linearisation error compared to using the start-of-step heading. */
     float theta_mid = odom->pose.theta_rad + dtheta * 0.5f;
 
-    /* Simple inline sin/cos approximation (Taylor, 5 terms) sufficient for
-     * small dt.  Replace with sinf/cosf if math.h is available in your build. */
-    /* For correctness in embedded environments without a full libm we use the
-     * standard functions — esp-idf ships newlib which provides them. */
-    float s, c;
-    /* sinf / cosf are available via newlib on ESP-IDF. */
-    {
-        /* Use the portable approach: approximate via Maclaurin for small angles,
-         * but for generality just call the runtime. */
-        extern float sinf(float);
-        extern float cosf(float);
-        s = sinf(theta_mid);
-        c = cosf(theta_mid);
-    }
-
-    odom->pose.x_m     += dc * c;
-    odom->pose.y_m     += dc * s;
+    odom->pose.x_m      += dc * cosf(theta_mid);
+    odom->pose.y_m      += dc * sinf(theta_mid);
     odom->pose.theta_rad += dtheta;
 
-    /* Normalise heading to (-π, π]. */
-    while (odom->pose.theta_rad >  ODOMETRY_TWO_PI * 0.5f)
-        odom->pose.theta_rad -= ODOMETRY_TWO_PI;
-    while (odom->pose.theta_rad <= -ODOMETRY_TWO_PI * 0.5f)
-        odom->pose.theta_rad += ODOMETRY_TWO_PI;
+    /* Normalise heading to the half-open interval (-π, π] to keep
+     * arithmetic consistent regardless of how many full rotations occur. */
+    while (odom->pose.theta_rad >  (float)M_PI) odom->pose.theta_rad -= 2.0f * (float)M_PI;
+    while (odom->pose.theta_rad <= -(float)M_PI) odom->pose.theta_rad += 2.0f * (float)M_PI;
 }
 
 void esp32_common_odometry_get_pose(

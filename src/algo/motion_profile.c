@@ -1,3 +1,18 @@
+/*
+ * motion_profile.c — Trapezoidal velocity motion profile
+ *
+ * Generates a velocity setpoint that ramps smoothly between values instead of
+ * stepping instantly.  This avoids wheel slip, motor stall, and mechanical
+ * shock when starting or stopping.
+ *
+ * On each call to _update(dt_s):
+ *   1. Compute the velocity error (target − current).
+ *   2. Choose max_accel if accelerating, max_decel if decelerating.
+ *   3. Advance current_vel by at most (rate * dt_s) toward target_vel.
+ *
+ * The profile is symmetric: it works for both positive and negative velocities
+ * and handles direction reversals (ramp to zero then ramp back up).
+ */
 #include "ESP32EmbeddedCommonLib/algo/motion_profile.h"
 
 #include <stddef.h>
@@ -48,15 +63,18 @@ float esp32_common_motion_profile_update(
     float error = mp->target_vel - mp->current_vel;
 
     if (mp_fabsf(error) < 1e-6f) {
+        /* Snap to target when the residual is below float precision noise.
+         * Avoids infinite oscillation around the target due to rounding. */
         mp->current_vel = mp->target_vel;
         return mp->current_vel;
     }
 
-    /* Choose acceleration or deceleration rate based on direction. */
+    /* Use deceleration rate when slowing down (error opposes current motion),
+     * acceleration rate when speeding up. */
     float rate = (error > 0.0f) ? mp->max_accel : mp->max_decel;
     float max_step = rate * dt_s;
 
-    /* Step toward target without overshooting. */
+    /* Clamp step so we never overshoot the target. */
     if (mp_fabsf(error) <= max_step) {
         mp->current_vel = mp->target_vel;
     } else {

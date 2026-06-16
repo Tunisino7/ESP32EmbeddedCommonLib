@@ -1,3 +1,18 @@
+/*
+ * ultrasonic_sensor.c — HC-SR04 ultrasonic distance sensor driver
+ *
+ * Measurement sequence (per HC-SR04 datasheet):
+ *   1. Pull TRIGGER low for ≥2 µs to ensure a clean leading edge.
+ *   2. Pulse TRIGGER high for 10 µs to initiate a measurement burst.
+ *   3. Pull TRIGGER low.
+ *   4. Wait for ECHO to go high (sensor is sending the burst).
+ *   5. Measure the duration of the ECHO high pulse.
+ *   6. Distance = echo_duration_us * speed_of_sound / 2
+ *      (factor of 2: pulse travels to target and back).
+ *
+ * Maximum range: ~400 cm.  Minimum reliable range: ~2 cm.
+ * At 343 m/s, 400 cm ≈ 23 ms round-trip → use a timeout > 23 000 µs.
+ */
 #include "ESP32EmbeddedCommonLib/sensor/ultrasonic_sensor.h"
 
 #include "esp_rom_sys.h"
@@ -24,18 +39,21 @@ static esp_err_t ultrasonic_sensor_validate_config(
 static esp_err_t ultrasonic_sensor_trigger_measurement(
     const esp32_common_ultrasonic_sensor_t *sensor
 ) {
+    /* Step 1: ensure TRIGGER is low before the pulse (clean edge). */
     esp_err_t err = gpio_set_level(sensor->config.trigger_pin, 0);
     if (err != ESP_OK) {
         return err;
     }
-    esp_rom_delay_us(2);
+    esp_rom_delay_us(2); /* ≥2 µs required by the HC-SR04 datasheet */
 
+    /* Step 2: high pulse for exactly 10 µs to trigger the burst. */
     err = gpio_set_level(sensor->config.trigger_pin, 1);
     if (err != ESP_OK) {
         return err;
     }
     esp_rom_delay_us(10);
 
+    /* Step 3: return TRIGGER low. */
     return gpio_set_level(sensor->config.trigger_pin, 0);
 }
 

@@ -1,3 +1,11 @@
+/*
+ * led.c — GPIO LED driver
+ *
+ * Supports active-high (LED anode to GPIO, cathode to GND) and active-low
+ * (LED cathode to GPIO via transistor, or common-anode LED) wiring.
+ * The active_high flag in the config controls the polarity inversion so all
+ * higher-level code calls on/off regardless of the physical wiring.
+ */
 #include "ESP32EmbeddedCommonLib/io/led.h"
 
 static esp_err_t led_validate_config(const esp32_common_led_config_t *config) {
@@ -13,6 +21,9 @@ static esp_err_t led_validate_config(const esp32_common_led_config_t *config) {
 }
 
 static esp_err_t led_write(const esp32_common_led_t *led, bool on) {
+    /* Translate logical on/off to a GPIO level, honouring polarity.
+     * active_high=true:  on→GPIO=1, off→GPIO=0  (common wiring)
+     * active_high=false: on→GPIO=0, off→GPIO=1  (active-low / open-drain) */
     int level = (led->config.active_high ? on : !on) ? 1 : 0;
     return gpio_set_level(led->config.pin, level);
 }

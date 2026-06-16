@@ -1,3 +1,16 @@
+/*
+ * motor_control.c — Chip-agnostic single-motor control with unit conversion
+ *
+ * Wraps any esp32_common_hbridge_t (vtable interface) and converts physical
+ * speed units to a duty-cycle percentage before delegating to the chip driver.
+ *
+ * Conversion chain:
+ *   m/s  →  rpm  =  (v × 60) / (2π × wheel_radius_m)
+ *   rpm  →  pct  =  (rpm / rpm_max) × 100   — open-loop, linear mapping
+ *   pct  →  H-bridge via hbridge.set_speed()
+ *
+ * This module does NOT include math.h; 2π is defined as a literal constant.
+ */
 #include "ESP32EmbeddedCommonLib/motor/motor_control.h"
 
 #include <stddef.h>

@@ -1,3 +1,25 @@
+/*
+ * filter.c — Signal filters for sensor fusion and noise reduction
+ *
+ * Three independent filter types:
+ *
+ *   Complementary filter:
+ *     Fuses a gyroscope (fast, drifts) with an accelerometer (noisy, accurate
+ *     long-term) to produce a clean angle estimate.  High-pass the gyro,
+ *     low-pass the accel, sum to 1.
+ *     Formula:  angle = α * (angle + ω*dt) + (1-α) * accel_angle
+ *     Typical α: 0.95–0.99.  Higher α → less accel noise, more gyro drift.
+ *
+ *   Moving-average filter:
+ *     O(1) implementation using a circular buffer + running sum.
+ *     On each update: subtract oldest sample, add new sample, divide by count.
+ *     No re-summation of the entire window needed.
+ *
+ *   Low-pass IIR filter (single-pole):
+ *     Formula:  output = α*input + (1-α)*prev_output
+ *     Equivalent to an exponentially weighted moving average.
+ *     α = dt / (τ + dt)  where τ is the desired time constant.
+ */
 #include "ESP32EmbeddedCommonLib/algo/filter.h"
 
 #include <stddef.h>
@@ -27,6 +49,9 @@ float esp32_common_complementary_filter_update(
 
     f->angle = f->alpha * (f->angle + gyro_dps * dt_s)
              + (1.0f - f->alpha) * accel_angle_deg;
+    /* The first term integrates the gyro rate over dt (high-pass behaviour).
+     * The second term pulls the angle toward the accelerometer reading
+     * (low-pass behaviour).  Alpha controls the crossover frequency. */
     return f->angle;
 }
 
@@ -53,7 +78,9 @@ float esp32_common_moving_avg_update(
 {
     if (f == NULL) return 0.0f;
 
-    /* Subtract the oldest value that will be overwritten. */
+    /* Subtract the oldest value that will be overwritten.
+     * If the buffer is not yet full (count < window) the slot is 0, so we
+     * only subtract when the window is fully populated. */
     if (f->count == f->window) {
         f->sum -= f->buf[f->head];
     } else {
@@ -62,7 +89,7 @@ float esp32_common_moving_avg_update(
 
     f->buf[f->head] = value;
     f->sum         += value;
-    f->head         = (f->head + 1) % f->window;
+    f->head         = (f->head + 1) % f->window; /* advance write cursor, wrapping */
 
     return f->sum / (float)f->count;
 }

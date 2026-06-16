@@ -1,3 +1,23 @@
+/*
+ * pid.c — Discrete position-form PID controller
+ *
+ * Algorithm:
+ *   output = Kp*e + Ki*∫e·dt + Kd*(−dMeasurement/dt)
+ *
+ * Design choices:
+ *   - Derivative on measurement (not on error): differentiating the error
+ *     produces a large spike ("derivative kick") whenever the setpoint
+ *     changes.  Differentiating the measurement avoids this at the cost of
+ *     opposing setpoint changes slightly — acceptable for motor/balance control.
+ *
+ *   - Anti-windup: without a limit the integral accumulates without bound
+ *     while the output is saturated, causing severe overshoot on recovery.
+ *     Clamping the integral to ±integral_limit prevents this.
+ *
+ *   - first_update flag: on the very first call prev_measurement is 0, so
+ *     the derivative term would produce a false spike.  We skip the D term
+ *     for the first iteration only.
+ */
 #include "ESP32EmbeddedCommonLib/algo/pid.h"
 
 #include <stddef.h>
@@ -33,15 +53,19 @@ float esp32_common_pid_update(
 
     float error = setpoint - measurement;
 
-    /* Proportional */
+    /* P term: proportional to current error. */
     float p_term = pid->kp * error;
 
-    /* Integral with anti-windup clamp */
+    /* I term: accumulated error over time; clamped to prevent windup.
+     * Accumulate first, then clamp — ensures the clamp is always applied
+     * before the value is used in the output sum. */
     pid->integral += pid->ki * error * dt_s;
     if (pid->integral >  pid->integral_limit) pid->integral =  pid->integral_limit;
     if (pid->integral < -pid->integral_limit) pid->integral = -pid->integral_limit;
 
-    /* Derivative on measurement (avoids kick on setpoint step) */
+    /* D term: rate of change of the *measurement* (not the error) to avoid
+     * derivative kick on setpoint steps.  Negated because:
+     *   d(error)/dt = d(sp - meas)/dt = -d(meas)/dt  (sp is constant between steps). */
     float d_term = 0.0f;
     if (!pid->first_update) {
         d_term = -pid->kd * (measurement - pid->prev_measurement) / dt_s;
