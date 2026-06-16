@@ -1,4 +1,4 @@
-#include "ESP32EmbeddedCommonLib/ir_line_sensor.h"
+#include "ESP32EmbeddedCommonLib/sensor/ir_line_sensor.h"
 
 static esp_err_t ir_line_sensor_validate_config(
     const esp32_common_ir_line_sensor_config_t *config

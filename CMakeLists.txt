@@ -2,10 +2,15 @@ if(ESP_PLATFORM)
     # Building as an ESP-IDF component (PlatformIO espidf / idf.py).
     idf_component_register(
         SRCS
-            "src/ultrasonic_sensor.c"
-            "src/led.c"
-            "src/ir_line_sensor.c"
-            "src/bmi160.c"
+            "src/sensor/bmi160.c"
+            "src/sensor/ir_line_sensor.c"
+            "src/sensor/ultrasonic_sensor.c"
+            "src/io/led.c"
+            "src/motor/dc_motor.c"
+            "src/motor/dc_motor_encoder.c"
+            "src/motor/pcnt_encoder.c"
+            "src/motor/motor_control.c"
+            "src/driver/drv8833.c"
         INCLUDE_DIRS
             "include"
         REQUIRES
@@ -14,6 +19,8 @@ if(ESP_PLATFORM)
             esp_rom
             esp_adc
             esp_driver_i2c
+            esp_driver_ledc
+            esp_driver_pcnt
     )
 else()
     # Building as a standalone CMake library (unit tests, host tooling, etc.).
@@ -21,10 +28,15 @@ else()
     project(ESP32EmbeddedCommonLib C)
 
     add_library(ESP32EmbeddedCommonLib STATIC
-        src/ultrasonic_sensor.c
-        src/led.c
-        src/ir_line_sensor.c
-        src/bmi160.c
+        src/sensor/bmi160.c
+        src/sensor/ir_line_sensor.c
+        src/sensor/ultrasonic_sensor.c
+        src/io/led.c
+        src/motor/dc_motor.c
+        src/motor/dc_motor_encoder.c
+        src/motor/pcnt_encoder.c
+        src/motor/motor_control.c
+        src/driver/drv8833.c
     )
 
     target_include_directories(ESP32EmbeddedCommonLib

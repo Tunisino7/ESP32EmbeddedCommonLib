@@ -1,4 +1,4 @@
-#include "ESP32EmbeddedCommonLib/bmi160.h"
+#include "ESP32EmbeddedCommonLib/sensor/bmi160.h"
 
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"

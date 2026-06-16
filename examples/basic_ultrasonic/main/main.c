@@ -1,4 +1,4 @@
-#include "ESP32EmbeddedCommonLib/ultrasonic_sensor.h"
+#include "ESP32EmbeddedCommonLib/sensor/ultrasonic_sensor.h"
 
 #include "esp_err.h"
 #include "esp_log.h"

@@ -11,7 +11,7 @@ This library is written in pure C, not Arduino and not C++.
 ## Include
 
 ```c
-#include "ESP32EmbeddedCommonLib/ultrasonic_sensor.h"
+#include "ESP32EmbeddedCommonLib/sensor/ultrasonic_sensor.h"
 ```
 
 ## Example

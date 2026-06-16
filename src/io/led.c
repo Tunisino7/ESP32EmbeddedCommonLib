@@ -1,4 +1,4 @@
-#include "ESP32EmbeddedCommonLib/led.h"
+#include "ESP32EmbeddedCommonLib/io/led.h"
 
 static esp_err_t led_validate_config(const esp32_common_led_config_t *config) {
     if (config == NULL) {

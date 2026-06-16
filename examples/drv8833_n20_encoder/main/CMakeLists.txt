@@ -1,0 +1,11 @@
+idf_component_register(
+    SRCS
+        "main.c"
+    INCLUDE_DIRS
+        "."
+    REQUIRES
+        ESP32EmbeddedCommonLib
+        esp_log
+        freertos
+        esp_timer
+)
