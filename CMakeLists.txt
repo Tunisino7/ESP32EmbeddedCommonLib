@@ -11,6 +11,11 @@ if(ESP_PLATFORM)
             "src/motor/pcnt_encoder.c"
             "src/motor/motor_control.c"
             "src/driver/drv8833.c"
+            "src/algo/pid.c"
+            "src/algo/maze_solver.c"
+            "src/algo/filter.c"
+            "src/algo/odometry.c"
+            "src/algo/motion_profile.c"
         INCLUDE_DIRS
             "include"
         REQUIRES
@@ -37,6 +42,11 @@ else()
         src/motor/pcnt_encoder.c
         src/motor/motor_control.c
         src/driver/drv8833.c
+        src/algo/pid.c
+        src/algo/maze_solver.c
+        src/algo/filter.c
+        src/algo/odometry.c
+        src/algo/motion_profile.c
     )
 
     target_include_directories(ESP32EmbeddedCommonLib
