@@ -2,7 +2,8 @@ if(ESP_PLATFORM)
     # Building as an ESP-IDF component (PlatformIO espidf / idf.py).
     idf_component_register(
         SRCS
-            "src/sensor/bmi160.c"
+            "src/sensor/imu.c"
+            "src/driver/bmi160.c"
             "src/sensor/ir_line_sensor.c"
             "src/sensor/ultrasonic_sensor.c"
             "src/io/led.c"
@@ -33,7 +34,8 @@ else()
     project(ESP32EmbeddedCommonLib C)
 
     add_library(ESP32EmbeddedCommonLib STATIC
-        src/sensor/bmi160.c
+        src/sensor/imu.c
+        src/driver/bmi160.c
         src/sensor/ir_line_sensor.c
         src/sensor/ultrasonic_sensor.c
         src/io/led.c

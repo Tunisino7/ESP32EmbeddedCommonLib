@@ -10,6 +10,8 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Renamed public functions to category-prefixed names:
   `ecl_algo_*`, `ecl_driver_*`, `ecl_motor_*`, `ecl_sensor_*`, and `ecl_io_*`.
+- Split IMU support into a generic `sensor/imu` wrapper and a BMI160-specific
+  `driver/bmi160` backend using the local ESP-IDF `i2c_master` implementation.
 
 ## [0.1.0] - 2026-06-16
 

@@ -7,8 +7,9 @@ This library is written in pure C, not Arduino and not C++.
 ## Current components
 
 - `ultrasonic_sensor`: blocking HC-SR04-style ultrasonic distance sensor driver using ESP-IDF GPIO and timers.
-- `ir_line_sensor`, `bmi160`: sensor helpers.
-- `drv8833`, `dc_motor`, `dc_motor_encoder`, `motor_control`, `pcnt_encoder`: motor drivers and control helpers.
+- `ir_line_sensor`, `imu`: sensor helpers.
+- `bmi160`, `drv8833`: chip-specific drivers.
+- `dc_motor`, `dc_motor_encoder`, `motor_control`, `pcnt_encoder`: motor drivers and control helpers.
 - `pid`, `maze_solver`, `filter`, `motion_profile`, `odometry`: reusable robot algorithms.
 
 ## Include

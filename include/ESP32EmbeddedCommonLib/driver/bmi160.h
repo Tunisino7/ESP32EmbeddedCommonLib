@@ -6,6 +6,11 @@
 
 #include "driver/i2c_master.h"
 #include "esp_err.h"
+#include "ESP32EmbeddedCommonLib/sensor/imu.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define ECL_BMI160_I2C_ADDR_PRIMARY   0x68U /* SDO = GND (module default) */
 #define ECL_BMI160_I2C_ADDR_SECONDARY 0x69U /* SDO = VDD */
@@ -25,47 +30,54 @@ typedef enum {
     ECL_BMI160_GYRO_RANGE_125DPS  = 0x04,
 } ecl_bmi160_gyro_range_t;
 
-typedef struct {
-    float x;
-    float y;
-    float z;
-} ecl_bmi160_vec3_t;
+typedef ecl_sensor_imu_vec3_t ecl_bmi160_vec3_t;
 
 typedef struct {
-    i2c_master_bus_handle_t           bus;
-    uint8_t                           address;
+    i2c_master_bus_handle_t bus;
+    uint8_t                 address;
     ecl_bmi160_accel_range_t accel_range;
     ecl_bmi160_gyro_range_t  gyro_range;
 } ecl_bmi160_config_t;
 
 typedef struct {
-    ecl_bmi160_config_t config;
-    bool                         initialized;
-    i2c_master_dev_handle_t      dev_handle;
-    float                        accel_scale; /* g per LSB */
-    float                        gyro_scale;  /* deg/s per LSB */
+    ecl_bmi160_config_t     config;
+    bool                    initialized;
+    i2c_master_dev_handle_t dev_handle;
+    float                   accel_scale; /* g per LSB */
+    float                   gyro_scale;  /* deg/s per LSB */
 } ecl_bmi160_t;
 
-/* Defaults: address 0x68, ±2 g accel, ±250 dps gyro. */
-ecl_bmi160_config_t ecl_sensor_bmi160_default_config(i2c_master_bus_handle_t bus);
+/* Defaults: address 0x68, +/-2 g accel, +/-250 dps gyro. */
+ecl_bmi160_config_t ecl_bmi160_default_config(i2c_master_bus_handle_t bus);
 
-esp_err_t ecl_sensor_bmi160_init(
+esp_err_t ecl_bmi160_init(
     ecl_bmi160_t              *imu,
     const ecl_bmi160_config_t *config
 );
 
-esp_err_t ecl_sensor_bmi160_deinit(ecl_bmi160_t *imu);
+esp_err_t ecl_bmi160_deinit(ecl_bmi160_t *imu);
 
 /* Accelerometer in g (range depends on config). */
-esp_err_t ecl_sensor_bmi160_read_accel(
+esp_err_t ecl_bmi160_read_accel(
     const ecl_bmi160_t *imu,
     ecl_bmi160_vec3_t  *accel_g
 );
 
 /* Gyroscope in deg/s. */
-esp_err_t ecl_sensor_bmi160_read_gyro(
+esp_err_t ecl_bmi160_read_gyro(
     const ecl_bmi160_t *imu,
     ecl_bmi160_vec3_t  *gyro_dps
 );
+
+/**
+ * @brief Bind a BMI160 instance to the generic sensor IMU interface.
+ *
+ * @p bmi160 must remain valid for as long as @p out is used.
+ */
+esp_err_t ecl_bmi160_bind_imu(ecl_bmi160_t *bmi160, ecl_sensor_imu_t *out);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ECL_BMI160_H */
