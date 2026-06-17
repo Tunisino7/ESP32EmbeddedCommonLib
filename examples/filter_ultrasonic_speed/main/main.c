@@ -56,12 +56,12 @@ static int8_t speed_from_distance(float distance_cm)
 static void init_drive(void)
 {
     ecl_drv8833_config_t bridge_cfg =
-        ecl_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
+        ecl_driver_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
 
-    ESP_ERROR_CHECK(ecl_drv8833_init(&s_bridge, &bridge_cfg));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_init(&s_bridge, &bridge_cfg));
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_A, &s_left_ctx, &s_left_hbridge));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_B, &s_right_ctx, &s_right_hbridge));
 
     const ecl_motor_control_config_t motor_cfg = {
@@ -77,22 +77,22 @@ void app_main(void)
     init_drive();
 
     ecl_ultrasonic_sensor_config_t us_cfg =
-        ecl_ultrasonic_sensor_default_config(PIN_US_TRIG, PIN_US_ECHO);
-    ESP_ERROR_CHECK(ecl_ultrasonic_sensor_init(&s_front_us, &us_cfg));
+        ecl_sensor_ultrasonic_sensor_default_config(PIN_US_TRIG, PIN_US_ECHO);
+    ESP_ERROR_CHECK(ecl_sensor_ultrasonic_sensor_init(&s_front_us, &us_cfg));
 
-    ecl_algo_moving_avg_init(&s_avg, 5);
-    ecl_algo_lpf_init(&s_lpf, 0.35f, SLOW_CM);
+    ecl_algo_filter_moving_avg_init(&s_avg, 5);
+    ecl_algo_filter_lpf_init(&s_lpf, 0.35f, SLOW_CM);
 
     while (true) {
         float raw_cm = SLOW_CM;
-        esp_err_t err = ecl_ultrasonic_sensor_measure_distance_cm(&s_front_us, &raw_cm);
+        esp_err_t err = ecl_sensor_ultrasonic_sensor_measure_distance_cm(&s_front_us, &raw_cm);
         if (err != ESP_OK) {
             ESP_LOGW(TAG, "Distance read failed: %s", esp_err_to_name(err));
             raw_cm = STOP_CM;
         }
 
-        float avg_cm = ecl_algo_moving_avg_update(&s_avg, raw_cm);
-        float filtered_cm = ecl_algo_lpf_update(&s_lpf, avg_cm);
+        float avg_cm = ecl_algo_filter_moving_avg_update(&s_avg, raw_cm);
+        float filtered_cm = ecl_algo_filter_lpf_update(&s_lpf, avg_cm);
         int8_t speed = speed_from_distance(filtered_cm);
 
         ESP_ERROR_CHECK(ecl_motor_control_set_speed_pct(&s_left_motor, speed));

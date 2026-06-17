@@ -47,23 +47,23 @@ typedef struct {
 } ecl_bmi160_t;
 
 /* Defaults: address 0x68, ±2 g accel, ±250 dps gyro. */
-ecl_bmi160_config_t ecl_bmi160_default_config(i2c_master_bus_handle_t bus);
+ecl_bmi160_config_t ecl_sensor_bmi160_default_config(i2c_master_bus_handle_t bus);
 
-esp_err_t ecl_bmi160_init(
+esp_err_t ecl_sensor_bmi160_init(
     ecl_bmi160_t              *imu,
     const ecl_bmi160_config_t *config
 );
 
-esp_err_t ecl_bmi160_deinit(ecl_bmi160_t *imu);
+esp_err_t ecl_sensor_bmi160_deinit(ecl_bmi160_t *imu);
 
 /* Accelerometer in g (range depends on config). */
-esp_err_t ecl_bmi160_read_accel(
+esp_err_t ecl_sensor_bmi160_read_accel(
     const ecl_bmi160_t *imu,
     ecl_bmi160_vec3_t  *accel_g
 );
 
 /* Gyroscope in deg/s. */
-esp_err_t ecl_bmi160_read_gyro(
+esp_err_t ecl_sensor_bmi160_read_gyro(
     const ecl_bmi160_t *imu,
     ecl_bmi160_vec3_t  *gyro_dps
 );

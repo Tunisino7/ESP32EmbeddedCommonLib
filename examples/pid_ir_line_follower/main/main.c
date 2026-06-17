@@ -81,14 +81,14 @@ static float line_position_from_sensors(bool left, bool center, bool right)
 static void init_drive(void)
 {
     ecl_drv8833_config_t bridge_cfg =
-        ecl_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
+        ecl_driver_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
     bridge_cfg.pin_nsleep = PIN_NSLEEP;
     bridge_cfg.pin_nfault = PIN_NFAULT;
 
-    ESP_ERROR_CHECK(ecl_drv8833_init(&s_bridge, &bridge_cfg));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_init(&s_bridge, &bridge_cfg));
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_A, &s_left_ctx, &s_left_hbridge));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_B, &s_right_ctx, &s_right_hbridge));
 
     const ecl_motor_control_config_t motor_cfg = {
@@ -101,13 +101,13 @@ static void init_drive(void)
 
 static void init_line_sensors(void)
 {
-    ecl_ir_line_sensor_config_t left_cfg = ecl_ir_line_sensor_default_config(PIN_IR_LEFT);
-    ecl_ir_line_sensor_config_t center_cfg = ecl_ir_line_sensor_default_config(PIN_IR_CENTER);
-    ecl_ir_line_sensor_config_t right_cfg = ecl_ir_line_sensor_default_config(PIN_IR_RIGHT);
+    ecl_ir_line_sensor_config_t left_cfg = ecl_sensor_ir_line_sensor_default_config(PIN_IR_LEFT);
+    ecl_ir_line_sensor_config_t center_cfg = ecl_sensor_ir_line_sensor_default_config(PIN_IR_CENTER);
+    ecl_ir_line_sensor_config_t right_cfg = ecl_sensor_ir_line_sensor_default_config(PIN_IR_RIGHT);
 
-    ESP_ERROR_CHECK(ecl_ir_line_sensor_init(&s_ir_left, &left_cfg));
-    ESP_ERROR_CHECK(ecl_ir_line_sensor_init(&s_ir_center, &center_cfg));
-    ESP_ERROR_CHECK(ecl_ir_line_sensor_init(&s_ir_right, &right_cfg));
+    ESP_ERROR_CHECK(ecl_sensor_ir_line_sensor_init(&s_ir_left, &left_cfg));
+    ESP_ERROR_CHECK(ecl_sensor_ir_line_sensor_init(&s_ir_center, &center_cfg));
+    ESP_ERROR_CHECK(ecl_sensor_ir_line_sensor_init(&s_ir_right, &right_cfg));
 }
 
 void app_main(void)
@@ -122,9 +122,9 @@ void app_main(void)
         bool center = false;
         bool right = false;
 
-        ESP_ERROR_CHECK(ecl_ir_line_sensor_read(&s_ir_left, &left));
-        ESP_ERROR_CHECK(ecl_ir_line_sensor_read(&s_ir_center, &center));
-        ESP_ERROR_CHECK(ecl_ir_line_sensor_read(&s_ir_right, &right));
+        ESP_ERROR_CHECK(ecl_sensor_ir_line_sensor_read(&s_ir_left, &left));
+        ESP_ERROR_CHECK(ecl_sensor_ir_line_sensor_read(&s_ir_center, &center));
+        ESP_ERROR_CHECK(ecl_sensor_ir_line_sensor_read(&s_ir_right, &right));
 
         float position = line_position_from_sensors(left, center, right);
         float correction = -ecl_algo_pid_update(

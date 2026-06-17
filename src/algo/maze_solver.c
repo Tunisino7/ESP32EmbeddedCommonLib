@@ -18,20 +18,20 @@
 
 /* Rotate heading 90° left (CCW).
  * N(0)→W(3)→S(2)→E(1)→N(0) — subtracting 1 mod 4, using +3 to avoid negatives. */
-static ecl_maze_heading_t heading_turn_left(ecl_maze_heading_t h)
+static ecl_maze_heading_t ecl_algo_maze_heading_turn_left(ecl_maze_heading_t h)
 {
     return (ecl_maze_heading_t)((h + 3) % 4);
 }
 
 /* Rotate heading 90° right (CW).
  * N(0)→E(1)→S(2)→W(3)→N(0) — adding 1 mod 4. */
-static ecl_maze_heading_t heading_turn_right(ecl_maze_heading_t h)
+static ecl_maze_heading_t ecl_algo_maze_heading_turn_right(ecl_maze_heading_t h)
 {
     return (ecl_maze_heading_t)((h + 1) % 4);
 }
 
 /* Rotate heading 180° (U-turn) — adding 2 mod 4. */
-static ecl_maze_heading_t heading_turn_around(ecl_maze_heading_t h)
+static ecl_maze_heading_t ecl_algo_maze_heading_turn_around(ecl_maze_heading_t h)
 {
     return (ecl_maze_heading_t)((h + 2) % 4);
 }
@@ -39,7 +39,7 @@ static ecl_maze_heading_t heading_turn_around(ecl_maze_heading_t h)
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Initialise the maze solver rule and starting cardinal heading. */
-void ecl_algo_maze_solver_init(
+void ecl_algo_maze_init(
     ecl_maze_solver_t *solver,
     ecl_maze_follow_t  rule,
     ecl_maze_heading_t initial_heading)
@@ -50,7 +50,7 @@ void ecl_algo_maze_solver_init(
 }
 
 /* Choose the next wall-following turn from left/front/right wall readings. */
-ecl_maze_turn_t ecl_algo_maze_solver_next_turn(
+ecl_maze_turn_t ecl_algo_maze_next_turn(
     ecl_maze_solver_t *solver,
     bool wall_left,
     bool wall_front,
@@ -92,7 +92,7 @@ ecl_maze_turn_t ecl_algo_maze_solver_next_turn(
 }
 
 /* Apply a completed turn to the solver's stored absolute heading. */
-void ecl_algo_maze_solver_apply_turn(
+void ecl_algo_maze_apply_turn(
     ecl_maze_solver_t *solver,
     ecl_maze_turn_t    turn)
 {
@@ -100,13 +100,13 @@ void ecl_algo_maze_solver_apply_turn(
 
     switch (turn) {
         case ECL_MAZE_TURN_LEFT:
-            solver->heading = heading_turn_left(solver->heading);
+            solver->heading = ecl_algo_maze_heading_turn_left(solver->heading);
             break;
         case ECL_MAZE_TURN_RIGHT:
-            solver->heading = heading_turn_right(solver->heading);
+            solver->heading = ecl_algo_maze_heading_turn_right(solver->heading);
             break;
         case ECL_MAZE_TURN_AROUND:
-            solver->heading = heading_turn_around(solver->heading);
+            solver->heading = ecl_algo_maze_heading_turn_around(solver->heading);
             break;
         case ECL_MAZE_TURN_NONE:
         default:
@@ -115,7 +115,7 @@ void ecl_algo_maze_solver_apply_turn(
 }
 
 /* Return the solver's current cardinal heading, defaulting north on NULL. */
-ecl_maze_heading_t ecl_algo_maze_solver_get_heading(
+ecl_maze_heading_t ecl_algo_maze_get_heading(
     const ecl_maze_solver_t *solver)
 {
     if (solver == NULL) return ECL_MAZE_NORTH;

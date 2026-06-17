@@ -43,7 +43,7 @@ typedef struct {
 /**
  * @brief Initialise a motor control handle.
  *
- * The hbridge must already be bound (e.g. via ecl_drv8833_bind_hbridge)
+ * The hbridge must already be bound (e.g. via ecl_driver_drv8833_bind_hbridge)
  * before calling this function.
  *
  * @param motor    Pointer to an uninitialised handle.

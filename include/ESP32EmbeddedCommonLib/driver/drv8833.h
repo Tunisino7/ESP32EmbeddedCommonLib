@@ -102,7 +102,7 @@ typedef struct {
  * @param pin_ain1 AIN1 GPIO.  @param pin_ain2 AIN2 GPIO.
  * @param pin_bin1 BIN1 GPIO.  @param pin_bin2 BIN2 GPIO.
  */
-ecl_drv8833_config_t ecl_drv8833_default_config(
+ecl_drv8833_config_t ecl_driver_drv8833_default_config(
     gpio_num_t pin_ain1, gpio_num_t pin_ain2,
     gpio_num_t pin_bin1, gpio_num_t pin_bin2
 );
@@ -116,7 +116,7 @@ ecl_drv8833_config_t ecl_drv8833_default_config(
  * @param drv     Pointer to an uninitialised instance.
  * @param config  Hardware configuration (copied into the instance).
  */
-esp_err_t ecl_drv8833_init(
+esp_err_t ecl_driver_drv8833_init(
     ecl_drv8833_t              *drv,
     const ecl_drv8833_config_t *config
 );
@@ -128,7 +128,7 @@ esp_err_t ecl_drv8833_init(
  * @param ch        CHANNEL_A or CHANNEL_B.
  * @param speed_pct Speed [−100, +100] %. Positive = forward, negative = reverse.
  */
-esp_err_t ecl_drv8833_set_speed(
+esp_err_t ecl_driver_drv8833_set_speed(
     ecl_drv8833_t        *drv,
     ecl_drv8833_channel_t ch,
     int8_t speed_pct
@@ -141,7 +141,7 @@ esp_err_t ecl_drv8833_set_speed(
  *   - false → coast (both INx = 0, Hi-Z output)
  *   - true  → active brake (both INx = 1, low-side recirculation)
  */
-esp_err_t ecl_drv8833_stop(
+esp_err_t ecl_driver_drv8833_stop(
     ecl_drv8833_t        *drv,
     ecl_drv8833_channel_t ch
 );
@@ -152,14 +152,14 @@ esp_err_t ecl_drv8833_stop(
  * Both motor outputs become Hi-Z (coast) regardless of INx states.
  * No-op if pin_nsleep was not configured (GPIO_NUM_NC).
  */
-esp_err_t ecl_drv8833_sleep(ecl_drv8833_t *drv);
+esp_err_t ecl_driver_drv8833_sleep(ecl_drv8833_t *drv);
 
 /**
  * @brief Deassert nSLEEP HIGH — wake the chip from sleep mode.
  *
  * No-op if pin_nsleep was not configured (GPIO_NUM_NC).
  */
-esp_err_t ecl_drv8833_wake(ecl_drv8833_t *drv);
+esp_err_t ecl_driver_drv8833_wake(ecl_drv8833_t *drv);
 
 /**
  * @brief Read the nFAULT pin.
@@ -170,7 +170,7 @@ esp_err_t ecl_drv8833_wake(ecl_drv8833_t *drv);
  * @param fault  Output: true = fault active (nFAULT = LOW).
  * @return ESP_ERR_NOT_SUPPORTED if pin_nfault = GPIO_NUM_NC.
  */
-esp_err_t ecl_drv8833_is_fault(
+esp_err_t ecl_driver_drv8833_is_fault(
     const ecl_drv8833_t *drv,
     bool *fault
 );
@@ -178,7 +178,7 @@ esp_err_t ecl_drv8833_is_fault(
 /**
  * @brief Stop both channels and release all LEDC resources.
  */
-esp_err_t ecl_drv8833_deinit(ecl_drv8833_t *drv);
+esp_err_t ecl_driver_drv8833_deinit(ecl_drv8833_t *drv);
 
 /* ── H-bridge adapter ────────────────────────────────────────────────────── */
 
@@ -204,7 +204,7 @@ typedef struct {
  * @code
  *   static ecl_drv8833_hbridge_ctx_t ctx_left;
  *   static ecl_hbridge_t             hbridge_left;
- *   ecl_drv8833_bind_hbridge(
+ *   ecl_driver_drv8833_bind_hbridge(
  *       &bridge, ECL_DRV8833_CHANNEL_A, &ctx_left, &hbridge_left);
  * @endcode
  *
@@ -214,7 +214,7 @@ typedef struct {
  * @param out      hbridge handle to populate.
  * @return ESP_ERR_INVALID_ARG if any pointer is NULL.
  */
-esp_err_t ecl_drv8833_bind_hbridge(
+esp_err_t ecl_driver_drv8833_bind_hbridge(
     ecl_drv8833_t             *drv,
     ecl_drv8833_channel_t      channel,
     ecl_drv8833_hbridge_ctx_t *ctx,

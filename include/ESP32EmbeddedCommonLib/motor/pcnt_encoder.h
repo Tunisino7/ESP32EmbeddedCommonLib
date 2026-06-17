@@ -63,7 +63,7 @@ typedef struct {
  * @param pin_a Encoder channel A.
  * @param pin_b Encoder channel B (GPIO_NUM_NC for 2× mode).
  */
-ecl_pcnt_encoder_config_t ecl_pcnt_encoder_default_config(
+ecl_pcnt_encoder_config_t ecl_motor_pcnt_encoder_default_config(
     gpio_num_t pin_a,
     gpio_num_t pin_b
 );
@@ -76,7 +76,7 @@ ecl_pcnt_encoder_config_t ecl_pcnt_encoder_default_config(
  * @param enc     Pointer to an uninitialised encoder instance.
  * @param config  Hardware configuration (copied into the instance).
  */
-esp_err_t ecl_pcnt_encoder_init(
+esp_err_t ecl_motor_pcnt_encoder_init(
     ecl_pcnt_encoder_t              *enc,
     const ecl_pcnt_encoder_config_t *config
 );
@@ -89,7 +89,7 @@ esp_err_t ecl_pcnt_encoder_init(
  * @param enc     Initialised encoder.
  * @param pulses  Output: int64 overflow-safe count.
  */
-esp_err_t ecl_pcnt_encoder_get_pulses(
+esp_err_t ecl_motor_pcnt_encoder_get_pulses(
     ecl_pcnt_encoder_t *enc,
     int64_t *pulses
 );
@@ -103,7 +103,7 @@ esp_err_t ecl_pcnt_encoder_get_pulses(
  * @param enc  Initialised encoder.
  * @param rpm  Output: output-shaft RPM (positive = forward).
  */
-esp_err_t ecl_pcnt_encoder_get_rpm(
+esp_err_t ecl_motor_pcnt_encoder_get_rpm(
     ecl_pcnt_encoder_t *enc,
     float *rpm
 );
@@ -111,12 +111,12 @@ esp_err_t ecl_pcnt_encoder_get_rpm(
 /**
  * @brief Reset pulse accumulator, PCNT hardware counter, and RPM reference.
  */
-esp_err_t ecl_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc);
+esp_err_t ecl_motor_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc);
 
 /**
  * @brief Release all PCNT hardware resources.
  */
-esp_err_t ecl_pcnt_encoder_deinit(ecl_pcnt_encoder_t *enc);
+esp_err_t ecl_motor_pcnt_encoder_deinit(ecl_pcnt_encoder_t *enc);
 
 #ifdef __cplusplus
 }

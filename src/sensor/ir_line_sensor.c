@@ -1,7 +1,7 @@
 #include "ESP32EmbeddedCommonLib/sensor/ir_line_sensor.h"
 
 /* Validate the required digital input pin for an IR line sensor. */
-static esp_err_t ir_line_sensor_validate_config(
+static esp_err_t ecl_sensor_ir_line_sensor_validate_config(
     const ecl_ir_line_sensor_config_t *config
 ) {
     if (config == NULL) {
@@ -16,7 +16,7 @@ static esp_err_t ir_line_sensor_validate_config(
 }
 
 /* Build a default digital-only IR line sensor configuration. */
-ecl_ir_line_sensor_config_t ecl_ir_line_sensor_default_config(
+ecl_ir_line_sensor_config_t ecl_sensor_ir_line_sensor_default_config(
     gpio_num_t digital_pin
 ) {
     ecl_ir_line_sensor_config_t config = {
@@ -32,7 +32,7 @@ ecl_ir_line_sensor_config_t ecl_ir_line_sensor_default_config(
 }
 
 /* Build an IR line sensor configuration with ADC analog reading enabled. */
-ecl_ir_line_sensor_config_t ecl_ir_line_sensor_config_with_analog(
+ecl_ir_line_sensor_config_t ecl_sensor_ir_line_sensor_config_with_analog(
     gpio_num_t    digital_pin,
     bool          active_high,
     adc_unit_t    adc_unit,
@@ -51,7 +51,7 @@ ecl_ir_line_sensor_config_t ecl_ir_line_sensor_config_with_analog(
 }
 
 /* Configure digital GPIO and optional ADC resources for the line sensor. */
-esp_err_t ecl_ir_line_sensor_init(
+esp_err_t ecl_sensor_ir_line_sensor_init(
     ecl_ir_line_sensor_t *sensor,
     const ecl_ir_line_sensor_config_t *config
 ) {
@@ -59,7 +59,7 @@ esp_err_t ecl_ir_line_sensor_init(
         return ESP_ERR_INVALID_ARG;
     }
 
-    esp_err_t err = ir_line_sensor_validate_config(config);
+    esp_err_t err = ecl_sensor_ir_line_sensor_validate_config(config);
     if (err != ESP_OK) {
         return err;
     }
@@ -114,7 +114,7 @@ esp_err_t ecl_ir_line_sensor_init(
 }
 
 /* Release optional ADC resources and mark the line sensor inactive. */
-esp_err_t ecl_ir_line_sensor_deinit(ecl_ir_line_sensor_t *sensor) {
+esp_err_t ecl_sensor_ir_line_sensor_deinit(ecl_ir_line_sensor_t *sensor) {
     if (sensor == NULL || !sensor->initialized) {
         return ESP_ERR_INVALID_STATE;
     }
@@ -133,7 +133,7 @@ esp_err_t ecl_ir_line_sensor_deinit(ecl_ir_line_sensor_t *sensor) {
 }
 
 /* Read the digital comparator output and convert it to detected/not detected. */
-esp_err_t ecl_ir_line_sensor_read(
+esp_err_t ecl_sensor_ir_line_sensor_read(
     const ecl_ir_line_sensor_t *sensor,
     bool *detected
 ) {
@@ -149,7 +149,7 @@ esp_err_t ecl_ir_line_sensor_read(
 }
 
 /* Read the optional raw ADC value from the analog output. */
-esp_err_t ecl_ir_line_sensor_read_raw(
+esp_err_t ecl_sensor_ir_line_sensor_read_raw(
     const ecl_ir_line_sensor_t *sensor,
     int *raw
 ) {

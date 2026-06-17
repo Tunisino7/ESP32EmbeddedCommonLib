@@ -19,7 +19,7 @@
 #include "esp_timer.h"
 
 /* Validate GPIO pins and timing constants for an ultrasonic sensor. */
-static esp_err_t ultrasonic_sensor_validate_config(
+static esp_err_t ecl_sensor_ultrasonic_sensor_validate_config(
     const ecl_ultrasonic_sensor_config_t *config
 ) {
     if (config == NULL) {
@@ -38,7 +38,7 @@ static esp_err_t ultrasonic_sensor_validate_config(
 }
 
 /* Emit the HC-SR04 trigger pulse that starts one measurement. */
-static esp_err_t ultrasonic_sensor_trigger_measurement(
+static esp_err_t ecl_sensor_ultrasonic_sensor_trigger_measurement(
     const ecl_ultrasonic_sensor_t *sensor
 ) {
     /* Step 1: ensure TRIGGER is low before the pulse (clean edge). */
@@ -60,7 +60,7 @@ static esp_err_t ultrasonic_sensor_trigger_measurement(
 }
 
 /* Busy-wait until ECHO reaches a requested level or the timeout expires. */
-static esp_err_t ultrasonic_sensor_wait_for_echo_level(
+static esp_err_t ecl_sensor_ultrasonic_sensor_wait_for_echo_level(
     const ecl_ultrasonic_sensor_t *sensor,
     int level,
     int64_t timeout_at_us
@@ -75,7 +75,7 @@ static esp_err_t ultrasonic_sensor_wait_for_echo_level(
 }
 
 /* Build a default HC-SR04 configuration for trigger and echo GPIO pins. */
-ecl_ultrasonic_sensor_config_t ecl_ultrasonic_sensor_default_config(
+ecl_ultrasonic_sensor_config_t ecl_sensor_ultrasonic_sensor_default_config(
     gpio_num_t trigger_pin,
     gpio_num_t echo_pin
 ) {
@@ -90,7 +90,7 @@ ecl_ultrasonic_sensor_config_t ecl_ultrasonic_sensor_default_config(
 }
 
 /* Configure trigger/echo GPIOs and initialise the sensor idle state. */
-esp_err_t ecl_ultrasonic_sensor_init(
+esp_err_t ecl_sensor_ultrasonic_sensor_init(
     ecl_ultrasonic_sensor_t *sensor,
     const ecl_ultrasonic_sensor_config_t *config
 ) {
@@ -98,7 +98,7 @@ esp_err_t ecl_ultrasonic_sensor_init(
         return ESP_ERR_INVALID_ARG;
     }
 
-    esp_err_t err = ultrasonic_sensor_validate_config(config);
+    esp_err_t err = ecl_sensor_ultrasonic_sensor_validate_config(config);
     if (err != ESP_OK) {
         return err;
     }
@@ -147,7 +147,7 @@ esp_err_t ecl_ultrasonic_sensor_init(
 }
 
 /* Trigger a measurement and return the raw ECHO high pulse width in us. */
-esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
+esp_err_t ecl_sensor_ultrasonic_sensor_measure_pulse_us(
     ecl_ultrasonic_sensor_t *sensor,
     uint32_t *pulse_width_us
 ) {
@@ -159,7 +159,7 @@ esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
         return ESP_ERR_INVALID_STATE;
     }
 
-    esp_err_t err = ultrasonic_sensor_trigger_measurement(sensor);
+    esp_err_t err = ecl_sensor_ultrasonic_sensor_trigger_measurement(sensor);
     if (err != ESP_OK) {
         return err;
     }
@@ -167,7 +167,7 @@ esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
     const int64_t timeout_at_us = esp_timer_get_time() + sensor->config.timeout_us;
 
     /* Wait until ECHO rises. */
-    err = ultrasonic_sensor_wait_for_echo_level(sensor, 1, timeout_at_us);
+    err = ecl_sensor_ultrasonic_sensor_wait_for_echo_level(sensor, 1, timeout_at_us);
     if (err != ESP_OK) {
         return err;
     }
@@ -175,7 +175,7 @@ esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
     const int64_t pulse_start_us = esp_timer_get_time();
 
     /* Wait until ECHO falls. */
-    err = ultrasonic_sensor_wait_for_echo_level(sensor, 0, timeout_at_us);
+    err = ecl_sensor_ultrasonic_sensor_wait_for_echo_level(sensor, 0, timeout_at_us);
     if (err != ESP_OK) {
         return err;
     }
@@ -187,7 +187,7 @@ esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
 }
 
 /* Measure ECHO pulse width and convert it to one-way distance in centimetres. */
-esp_err_t ecl_ultrasonic_sensor_measure_distance_cm(
+esp_err_t ecl_sensor_ultrasonic_sensor_measure_distance_cm(
     ecl_ultrasonic_sensor_t *sensor,
     float *distance_cm
 ) {
@@ -196,7 +196,7 @@ esp_err_t ecl_ultrasonic_sensor_measure_distance_cm(
     }
 
     uint32_t pulse_width_us = 0U;
-    esp_err_t err = ecl_ultrasonic_sensor_measure_pulse_us(sensor, &pulse_width_us);
+    esp_err_t err = ecl_sensor_ultrasonic_sensor_measure_pulse_us(sensor, &pulse_width_us);
     if (err != ESP_OK) {
         return err;
     }

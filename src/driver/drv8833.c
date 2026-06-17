@@ -6,7 +6,7 @@
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
 /* Set and latch an LEDC duty value for one DRV8833 input pin. */
-static esp_err_t drv8833_ledc_set(ledc_channel_t ch, uint32_t duty)
+static esp_err_t ecl_driver_drv8833_ledc_set(ledc_channel_t ch, uint32_t duty)
 {
     esp_err_t err = ledc_set_duty(LEDC_LOW_SPEED_MODE, ch, duty);
     if (err != ESP_OK) return err;
@@ -33,9 +33,9 @@ static esp_err_t drv8833_ledc_set(ledc_channel_t ch, uint32_t duty)
  *   Reverse at X%:  IN1 = max - duty, IN2 = max
  *   Stop:           IN1 = max,       IN2 = max  (active brake)
  */
-static esp_err_t drv8833_apply_speed(ecl_drv8833_t        *drv,
-                                      ecl_drv8833_channel_t ch,
-                                      int8_t speed_pct)
+static esp_err_t ecl_driver_drv8833_apply_speed(ecl_drv8833_t        *drv,
+                                                ecl_drv8833_channel_t ch,
+                                                int8_t speed_pct)
 {
     const ecl_drv8833_channel_cfg_t *cfg = &drv->config.channel[ch];
 
@@ -53,15 +53,15 @@ static esp_err_t drv8833_apply_speed(ecl_drv8833_t        *drv,
         d_in2 = fwd ? 0U   : duty;
     }
 
-    esp_err_t err = drv8833_ledc_set(cfg->ledc_ch_in1, d_in1);
+    esp_err_t err = ecl_driver_drv8833_ledc_set(cfg->ledc_ch_in1, d_in1);
     if (err != ESP_OK) return err;
-    return drv8833_ledc_set(cfg->ledc_ch_in2, d_in2);
+    return ecl_driver_drv8833_ledc_set(cfg->ledc_ch_in2, d_in2);
 }
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Build a default two-channel DRV8833 configuration for the supplied pins. */
-ecl_drv8833_config_t ecl_drv8833_default_config(
+ecl_drv8833_config_t ecl_driver_drv8833_default_config(
     gpio_num_t pin_ain1, gpio_num_t pin_ain2,
     gpio_num_t pin_bin1, gpio_num_t pin_bin2)
 {
@@ -91,7 +91,7 @@ ecl_drv8833_config_t ecl_drv8833_default_config(
 }
 
 /* Configure DRV8833 GPIOs, optional control pins, and shared PWM channels. */
-esp_err_t ecl_drv8833_init(
+esp_err_t ecl_driver_drv8833_init(
     ecl_drv8833_t              *drv,
     const ecl_drv8833_config_t *config)
 {
@@ -183,7 +183,7 @@ esp_err_t ecl_drv8833_init(
 }
 
 /* Set a signed speed percentage for one DRV8833 output channel. */
-esp_err_t ecl_drv8833_set_speed(
+esp_err_t ecl_driver_drv8833_set_speed(
     ecl_drv8833_t        *drv,
     ecl_drv8833_channel_t ch,
     int8_t speed_pct)
@@ -194,7 +194,7 @@ esp_err_t ecl_drv8833_set_speed(
     if (speed_pct >  100) speed_pct =  100;
     if (speed_pct < -100) speed_pct = -100;
 
-    esp_err_t err = drv8833_apply_speed(drv, ch, speed_pct);
+    esp_err_t err = ecl_driver_drv8833_apply_speed(drv, ch, speed_pct);
     if (err != ESP_OK) return err;
 
     drv->speed[ch] = speed_pct;
@@ -202,7 +202,7 @@ esp_err_t ecl_drv8833_set_speed(
 }
 
 /* Stop one DRV8833 channel using coast or brake behavior from decay mode. */
-esp_err_t ecl_drv8833_stop(
+esp_err_t ecl_driver_drv8833_stop(
     ecl_drv8833_t        *drv,
     ecl_drv8833_channel_t ch)
 {
@@ -215,7 +215,7 @@ esp_err_t ecl_drv8833_stop(
      * speed_pct = 0 with fast_decay:
      *   d_in1 = 0,   d_in2 = 0   → both Hi-Z → coast.
      */
-    esp_err_t err = drv8833_apply_speed(drv, ch, 0);
+    esp_err_t err = ecl_driver_drv8833_apply_speed(drv, ch, 0);
     if (err != ESP_OK) return err;
 
     drv->speed[ch] = 0;
@@ -223,7 +223,7 @@ esp_err_t ecl_drv8833_stop(
 }
 
 /* Assert nSLEEP when available to put the DRV8833 into low-power sleep. */
-esp_err_t ecl_drv8833_sleep(ecl_drv8833_t *drv)
+esp_err_t ecl_driver_drv8833_sleep(ecl_drv8833_t *drv)
 {
     if (drv == NULL || !drv->initialized)  return ESP_ERR_INVALID_STATE;
     if (drv->config.pin_nsleep == GPIO_NUM_NC) return ESP_OK; /* tied high, no-op */
@@ -236,7 +236,7 @@ esp_err_t ecl_drv8833_sleep(ecl_drv8833_t *drv)
 }
 
 /* Deassert nSLEEP when available to wake the DRV8833 for operation. */
-esp_err_t ecl_drv8833_wake(ecl_drv8833_t *drv)
+esp_err_t ecl_driver_drv8833_wake(ecl_drv8833_t *drv)
 {
     if (drv == NULL || !drv->initialized)  return ESP_ERR_INVALID_STATE;
     if (drv->config.pin_nsleep == GPIO_NUM_NC) return ESP_OK;
@@ -249,7 +249,7 @@ esp_err_t ecl_drv8833_wake(ecl_drv8833_t *drv)
 }
 
 /* Read the active-low nFAULT pin and report whether a fault is active. */
-esp_err_t ecl_drv8833_is_fault(
+esp_err_t ecl_driver_drv8833_is_fault(
     const ecl_drv8833_t *drv,
     bool *fault)
 {
@@ -263,12 +263,12 @@ esp_err_t ecl_drv8833_is_fault(
 }
 
 /* Stop all channels, release PWM outputs, and optionally sleep the driver. */
-esp_err_t ecl_drv8833_deinit(ecl_drv8833_t *drv)
+esp_err_t ecl_driver_drv8833_deinit(ecl_drv8833_t *drv)
 {
     if (drv == NULL || !drv->initialized) return ESP_ERR_INVALID_STATE;
 
     for (int i = 0; i < (int)ECL_DRV8833_CHANNELS; i++) {
-        (void)drv8833_apply_speed(drv, (ecl_drv8833_channel_t)i, 0);
+        (void)ecl_driver_drv8833_apply_speed(drv, (ecl_drv8833_channel_t)i, 0);
         ledc_stop(LEDC_LOW_SPEED_MODE, drv->config.channel[i].ledc_ch_in1, 0);
         ledc_stop(LEDC_LOW_SPEED_MODE, drv->config.channel[i].ledc_ch_in2, 0);
     }
@@ -286,23 +286,23 @@ esp_err_t ecl_drv8833_deinit(ecl_drv8833_t *drv)
 /* ── H-bridge adapter ────────────────────────────────────────────────────── */
 
 /* Adapter callback that maps the generic H-bridge speed command to DRV8833. */
-static esp_err_t drv8833_hb_set_speed(void *ctx, int8_t speed_pct)
+static esp_err_t ecl_driver_drv8833_hbridge_set_speed(void *ctx, int8_t speed_pct)
 {
     const ecl_drv8833_hbridge_ctx_t *c =
         (const ecl_drv8833_hbridge_ctx_t *)ctx;
-    return ecl_drv8833_set_speed(c->drv, c->channel, speed_pct);
+    return ecl_driver_drv8833_set_speed(c->drv, c->channel, speed_pct);
 }
 
 /* Adapter callback that maps the generic H-bridge stop command to DRV8833. */
-static esp_err_t drv8833_hb_stop(void *ctx)
+static esp_err_t ecl_driver_drv8833_hbridge_stop(void *ctx)
 {
     const ecl_drv8833_hbridge_ctx_t *c =
         (const ecl_drv8833_hbridge_ctx_t *)ctx;
-    return ecl_drv8833_stop(c->drv, c->channel);
+    return ecl_driver_drv8833_stop(c->drv, c->channel);
 }
 
 /* Bind one DRV8833 channel to the generic H-bridge interface. */
-esp_err_t ecl_drv8833_bind_hbridge(
+esp_err_t ecl_driver_drv8833_bind_hbridge(
     ecl_drv8833_t             *drv,
     ecl_drv8833_channel_t      channel,
     ecl_drv8833_hbridge_ctx_t *ctx,
@@ -312,8 +312,8 @@ esp_err_t ecl_drv8833_bind_hbridge(
 
     ctx->drv     = drv;
     ctx->channel = channel;
-    out->set_speed = drv8833_hb_set_speed;
-    out->stop      = drv8833_hb_stop;
+    out->set_speed = ecl_driver_drv8833_hbridge_set_speed;
+    out->stop      = ecl_driver_drv8833_hbridge_stop;
     out->ctx       = ctx;
     return ESP_OK;
 }

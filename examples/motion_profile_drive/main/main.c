@@ -36,12 +36,12 @@ static ecl_motion_profile_t s_profile;
 static void init_drive(void)
 {
     ecl_drv8833_config_t bridge_cfg =
-        ecl_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
+        ecl_driver_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
 
-    ESP_ERROR_CHECK(ecl_drv8833_init(&s_bridge, &bridge_cfg));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_init(&s_bridge, &bridge_cfg));
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_A, &s_left_ctx, &s_left_hbridge));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_B, &s_right_ctx, &s_right_hbridge));
 
     const ecl_motor_control_config_t motor_cfg = {
@@ -54,17 +54,17 @@ static void init_drive(void)
 
 static void run_target(float target_ms)
 {
-    ecl_algo_motion_profile_set_target(&s_profile, target_ms);
+    ecl_algo_motion_set_target(&s_profile, target_ms);
 
     for (uint32_t elapsed = 0; elapsed < CRUISE_MS; elapsed += LOOP_MS) {
         float velocity_ms =
-            ecl_algo_motion_profile_update(&s_profile, (float)LOOP_MS / 1000.0f);
+            ecl_algo_motion_update(&s_profile, (float)LOOP_MS / 1000.0f);
 
         ESP_ERROR_CHECK(ecl_motor_control_set_speed_ms(&s_left_motor, velocity_ms));
         ESP_ERROR_CHECK(ecl_motor_control_set_speed_ms(&s_right_motor, velocity_ms));
 
         ESP_LOGI(TAG, "target=%.2f m/s command=%.2f m/s settled=%d",
-                 target_ms, velocity_ms, ecl_algo_motion_profile_is_settled(&s_profile));
+                 target_ms, velocity_ms, ecl_algo_motion_is_settled(&s_profile));
 
         vTaskDelay(pdMS_TO_TICKS(LOOP_MS));
     }
@@ -73,7 +73,7 @@ static void run_target(float target_ms)
 void app_main(void)
 {
     init_drive();
-    ecl_algo_motion_profile_init(&s_profile, 0.35f, 0.50f, 0.0f);
+    ecl_algo_motion_init(&s_profile, 0.35f, 0.50f, 0.0f);
 
     while (true) {
         run_target(0.35f);

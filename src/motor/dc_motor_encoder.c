@@ -13,7 +13,7 @@
  * (+32767 or −32768), which we accumulate so the logical counter never
  * saturates.
  */
-static bool IRAM_ATTR encoder_pcnt_overflow_cb(
+static bool IRAM_ATTR ecl_motor_dc_encoder_pcnt_overflow_cb(
     pcnt_unit_handle_t unit,
     const pcnt_watch_event_data_t *edata,
     void *user_data)
@@ -36,7 +36,7 @@ static bool IRAM_ATTR encoder_pcnt_overflow_cb(
  * critical section so that a mid-read overflow callback cannot split the two
  * values and produce an incorrect sum.
  */
-static int64_t encoder_get_total(ecl_dc_motor_encoder_t *motor)
+static int64_t ecl_motor_dc_encoder_get_total(ecl_dc_motor_encoder_t *motor)
 {
     int hw = 0;
 
@@ -51,7 +51,7 @@ static int64_t encoder_get_total(ecl_dc_motor_encoder_t *motor)
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Build a default combined DC motor and quadrature encoder configuration. */
-ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
+ecl_dc_motor_encoder_config_t ecl_motor_dc_encoder_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
     gpio_num_t pin_pwm,
@@ -59,7 +59,7 @@ ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
     gpio_num_t pin_enc_b)
 {
     ecl_dc_motor_encoder_config_t cfg = {
-        .motor          = ecl_dc_motor_default_config(pin_in1, pin_in2, pin_pwm),
+        .motor          = ecl_motor_dc_default_config(pin_in1, pin_in2, pin_pwm),
         .pin_enc_a      = pin_enc_a,
         .pin_enc_b      = pin_enc_b,
         .pulses_per_rev = ECL_N20_MOTOR_PPR,
@@ -69,7 +69,7 @@ ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
 }
 
 /* Initialise the motor driver plus PCNT encoder channels and accumulator. */
-esp_err_t ecl_dc_motor_encoder_init(
+esp_err_t ecl_motor_dc_encoder_init(
     ecl_dc_motor_encoder_t              *motor,
     const ecl_dc_motor_encoder_config_t *config)
 {
@@ -88,7 +88,7 @@ esp_err_t ecl_dc_motor_encoder_init(
     motor->spinlock           = (portMUX_TYPE)portMUX_INITIALIZER_UNLOCKED;
 
     /* Initialise underlying H-bridge / LEDC motor driver. */
-    esp_err_t err = ecl_dc_motor_init(&motor->motor, &config->motor);
+    esp_err_t err = ecl_motor_dc_init(&motor->motor, &config->motor);
     if (err != ESP_OK) return err;
 
     /* PCNT unit with symmetric ±32767 hardware limits. */
@@ -110,7 +110,7 @@ esp_err_t ecl_dc_motor_encoder_init(
 
     /* Register overflow / underflow callback. */
     pcnt_event_callbacks_t cbs = {
-        .on_reach = encoder_pcnt_overflow_cb,
+        .on_reach = ecl_motor_dc_encoder_pcnt_overflow_cb,
     };
     err = pcnt_unit_register_event_callbacks(motor->pcnt_unit, &cbs, motor);
     if (err != ESP_OK) goto fail_unit;
@@ -197,41 +197,41 @@ fail_chan_a:
 fail_unit:
     pcnt_del_unit(motor->pcnt_unit);
 fail_motor:
-    ecl_dc_motor_deinit(&motor->motor);
+    ecl_motor_dc_deinit(&motor->motor);
     return err;
 }
 
 /* Set the underlying DC motor speed while preserving encoder state. */
-esp_err_t ecl_dc_motor_encoder_set_speed(
+esp_err_t ecl_motor_dc_encoder_set_speed(
     ecl_dc_motor_encoder_t *motor,
     int8_t speed_pct)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
-    return ecl_dc_motor_set_speed(&motor->motor, speed_pct);
+    return ecl_motor_dc_set_speed(&motor->motor, speed_pct);
 }
 
 /* Stop the underlying DC motor while leaving encoder counting available. */
-esp_err_t ecl_dc_motor_encoder_stop(
+esp_err_t ecl_motor_dc_encoder_stop(
     ecl_dc_motor_encoder_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
-    return ecl_dc_motor_stop(&motor->motor);
+    return ecl_motor_dc_stop(&motor->motor);
 }
 
 /* Read the accumulated signed encoder pulse count. */
-esp_err_t ecl_dc_motor_encoder_get_pulses(
+esp_err_t ecl_motor_dc_encoder_get_pulses(
     ecl_dc_motor_encoder_t *motor,
     int64_t *pulses)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
     if (pulses == NULL)                       return ESP_ERR_INVALID_ARG;
 
-    *pulses = encoder_get_total(motor);
+    *pulses = ecl_motor_dc_encoder_get_total(motor);
     return ESP_OK;
 }
 
 /* Compute output-shaft RPM since the previous RPM sample. */
-esp_err_t ecl_dc_motor_encoder_get_rpm(
+esp_err_t ecl_motor_dc_encoder_get_rpm(
     ecl_dc_motor_encoder_t *motor,
     float *rpm)
 {
@@ -239,7 +239,7 @@ esp_err_t ecl_dc_motor_encoder_get_rpm(
     if (rpm == NULL)                          return ESP_ERR_INVALID_ARG;
 
     int64_t now_us     = (int64_t)esp_timer_get_time();
-    int64_t now_pulses = encoder_get_total(motor);
+    int64_t now_pulses = ecl_motor_dc_encoder_get_total(motor);
 
     if (motor->rpm_ref_time_us == 0) {
         /* First call: seed the reference and return 0 RPM. */
@@ -275,7 +275,7 @@ esp_err_t ecl_dc_motor_encoder_get_rpm(
 }
 
 /* Clear encoder counts and reset RPM reference timing. */
-esp_err_t ecl_dc_motor_encoder_reset_count(
+esp_err_t ecl_motor_dc_encoder_reset_count(
     ecl_dc_motor_encoder_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
@@ -293,12 +293,12 @@ esp_err_t ecl_dc_motor_encoder_reset_count(
 }
 
 /* Stop and release the motor driver and PCNT encoder resources. */
-esp_err_t ecl_dc_motor_encoder_deinit(
+esp_err_t ecl_motor_dc_encoder_deinit(
     ecl_dc_motor_encoder_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
-    esp_err_t err = ecl_dc_motor_encoder_stop(motor);
+    esp_err_t err = ecl_motor_dc_encoder_stop(motor);
     if (err != ESP_OK) return err;
 
     pcnt_unit_stop(motor->pcnt_unit);
@@ -311,7 +311,7 @@ esp_err_t ecl_dc_motor_encoder_deinit(
     pcnt_del_channel(motor->pcnt_chan_a);
     pcnt_del_unit(motor->pcnt_unit);
 
-    ecl_dc_motor_deinit(&motor->motor);
+    ecl_motor_dc_deinit(&motor->motor);
     motor->initialized = false;
     return ESP_OK;
 }

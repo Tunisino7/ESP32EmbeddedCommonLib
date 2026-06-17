@@ -21,19 +21,19 @@ typedef struct {
     bool state; /* logical state: true = on, false = off */
 } ecl_led_t;
 
-ecl_led_config_t ecl_led_default_config(gpio_num_t pin);
+ecl_led_config_t ecl_io_led_default_config(gpio_num_t pin);
 
-esp_err_t ecl_led_init(
+esp_err_t ecl_io_led_init(
     ecl_led_t *led,
     const ecl_led_config_t *config
 );
 
-esp_err_t ecl_led_on(ecl_led_t *led);
+esp_err_t ecl_io_led_on(ecl_led_t *led);
 
-esp_err_t ecl_led_off(ecl_led_t *led);
+esp_err_t ecl_io_led_off(ecl_led_t *led);
 
-esp_err_t ecl_led_toggle(ecl_led_t *led);
+esp_err_t ecl_io_led_toggle(ecl_led_t *led);
 
-esp_err_t ecl_led_set(ecl_led_t *led, bool on);
+esp_err_t ecl_io_led_set(ecl_led_t *led, bool on);
 
 #endif /* ECL_LED_H */

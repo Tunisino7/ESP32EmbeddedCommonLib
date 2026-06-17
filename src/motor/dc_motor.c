@@ -6,7 +6,7 @@
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
 /* Validate the required GPIO pins for a DC motor configuration. */
-static esp_err_t dc_motor_validate(const ecl_dc_motor_config_t *config)
+static esp_err_t ecl_motor_dc_validate_config(const ecl_dc_motor_config_t *config)
 {
     if (config == NULL)                 return ESP_ERR_INVALID_ARG;
     if (config->pin_in1 == GPIO_NUM_NC) return ESP_ERR_INVALID_ARG;
@@ -16,8 +16,8 @@ static esp_err_t dc_motor_validate(const ecl_dc_motor_config_t *config)
 }
 
 /* Drive the two H-bridge direction inputs to the requested logical levels. */
-static esp_err_t dc_motor_set_dir(const ecl_dc_motor_t *motor,
-                                   bool in1, bool in2)
+static esp_err_t ecl_motor_dc_set_dir(const ecl_dc_motor_t *motor,
+                                      bool in1, bool in2)
 {
     esp_err_t err = gpio_set_level(motor->config.pin_in1, in1 ? 1 : 0);
     if (err != ESP_OK) return err;
@@ -25,8 +25,8 @@ static esp_err_t dc_motor_set_dir(const ecl_dc_motor_t *motor,
 }
 
 /* Set and latch the LEDC PWM duty for the motor channel. */
-static esp_err_t dc_motor_set_duty(const ecl_dc_motor_t *motor,
-                                    uint32_t duty)
+static esp_err_t ecl_motor_dc_set_duty(const ecl_dc_motor_t *motor,
+                                       uint32_t duty)
 {
     esp_err_t err = ledc_set_duty(LEDC_LOW_SPEED_MODE,
                                   motor->config.ledc_channel, duty);
@@ -37,7 +37,7 @@ static esp_err_t dc_motor_set_duty(const ecl_dc_motor_t *motor,
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Build a default DC motor configuration for the supplied H-bridge pins. */
-ecl_dc_motor_config_t ecl_dc_motor_default_config(
+ecl_dc_motor_config_t ecl_motor_dc_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
     gpio_num_t pin_pwm)
@@ -56,13 +56,13 @@ ecl_dc_motor_config_t ecl_dc_motor_default_config(
 }
 
 /* Configure direction GPIOs and LEDC PWM for a DC motor instance. */
-esp_err_t ecl_dc_motor_init(
+esp_err_t ecl_motor_dc_init(
     ecl_dc_motor_t              *motor,
     const ecl_dc_motor_config_t *config)
 {
     if (motor == NULL) return ESP_ERR_INVALID_ARG;
 
-    esp_err_t err = dc_motor_validate(config);
+    esp_err_t err = ecl_motor_dc_validate_config(config);
     if (err != ESP_OK) return err;
 
     motor->initialized = false;
@@ -114,7 +114,7 @@ esp_err_t ecl_dc_motor_init(
 }
 
 /* Set signed motor speed as a percentage, using sign for direction. */
-esp_err_t ecl_dc_motor_set_speed(
+esp_err_t ecl_motor_dc_set_speed(
     ecl_dc_motor_t *motor,
     int8_t speed_pct)
 {
@@ -125,7 +125,7 @@ esp_err_t ecl_dc_motor_set_speed(
     if (speed_pct < -100) speed_pct = -100;
 
     if (speed_pct == 0) {
-        return ecl_dc_motor_stop(motor);
+        return ecl_motor_dc_stop(motor);
     }
 
     bool     fwd      = (speed_pct > 0);
@@ -133,10 +133,10 @@ esp_err_t ecl_dc_motor_set_speed(
     uint32_t max_duty = (1U << motor->config.pwm_resolution) - 1U;
     uint32_t duty     = ((uint32_t)abs_pct * max_duty) / 100U;
 
-    esp_err_t err = dc_motor_set_dir(motor, fwd, !fwd);
+    esp_err_t err = ecl_motor_dc_set_dir(motor, fwd, !fwd);
     if (err != ESP_OK) return err;
 
-    err = dc_motor_set_duty(motor, duty);
+    err = ecl_motor_dc_set_duty(motor, duty);
     if (err != ESP_OK) return err;
 
     motor->speed_pct = speed_pct;
@@ -144,17 +144,17 @@ esp_err_t ecl_dc_motor_set_speed(
 }
 
 /* Stop the motor using coast or brake mode based on configuration. */
-esp_err_t ecl_dc_motor_stop(ecl_dc_motor_t *motor)
+esp_err_t ecl_motor_dc_stop(ecl_dc_motor_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
-    esp_err_t err = dc_motor_set_duty(motor, 0);
+    esp_err_t err = ecl_motor_dc_set_duty(motor, 0);
     if (err != ESP_OK) return err;
 
     if (motor->config.brake_on_stop) {
-        err = dc_motor_set_dir(motor, true, true);
+        err = ecl_motor_dc_set_dir(motor, true, true);
     } else {
-        err = dc_motor_set_dir(motor, false, false);
+        err = ecl_motor_dc_set_dir(motor, false, false);
     }
 
     motor->speed_pct = 0;
@@ -162,11 +162,11 @@ esp_err_t ecl_dc_motor_stop(ecl_dc_motor_t *motor)
 }
 
 /* Stop the motor and mark the driver instance as uninitialised. */
-esp_err_t ecl_dc_motor_deinit(ecl_dc_motor_t *motor)
+esp_err_t ecl_motor_dc_deinit(ecl_dc_motor_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
-    esp_err_t err = ecl_dc_motor_stop(motor);
+    esp_err_t err = ecl_motor_dc_stop(motor);
     if (err != ESP_OK) return err;
 
     ledc_stop(LEDC_LOW_SPEED_MODE, motor->config.ledc_channel, 0);

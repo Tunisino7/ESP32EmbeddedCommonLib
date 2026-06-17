@@ -9,7 +9,7 @@
 #include "ESP32EmbeddedCommonLib/io/led.h"
 
 /* Validate that the LED configuration contains a usable GPIO pin. */
-static esp_err_t led_validate_config(const ecl_led_config_t *config) {
+static esp_err_t ecl_io_led_validate_config(const ecl_led_config_t *config) {
     if (config == NULL) {
         return ESP_ERR_INVALID_ARG;
     }
@@ -22,7 +22,7 @@ static esp_err_t led_validate_config(const ecl_led_config_t *config) {
 }
 
 /* Write a logical LED state to GPIO, applying active-high/active-low polarity. */
-static esp_err_t led_write(const ecl_led_t *led, bool on) {
+static esp_err_t ecl_io_led_write(const ecl_led_t *led, bool on) {
     /* Translate logical on/off to a GPIO level, honouring polarity.
      * active_high=true:  on→GPIO=1, off→GPIO=0  (common wiring)
      * active_high=false: on→GPIO=0, off→GPIO=1  (active-low / open-drain) */
@@ -31,7 +31,7 @@ static esp_err_t led_write(const ecl_led_t *led, bool on) {
 }
 
 /* Build a default active-high LED configuration for the supplied GPIO pin. */
-ecl_led_config_t ecl_led_default_config(gpio_num_t pin) {
+ecl_led_config_t ecl_io_led_default_config(gpio_num_t pin) {
     ecl_led_config_t config = {
         .pin = pin,
         .active_high = true,
@@ -41,7 +41,7 @@ ecl_led_config_t ecl_led_default_config(gpio_num_t pin) {
 }
 
 /* Configure the LED GPIO as an output and initialise it to off. */
-esp_err_t ecl_led_init(
+esp_err_t ecl_io_led_init(
     ecl_led_t *led,
     const ecl_led_config_t *config
 ) {
@@ -49,7 +49,7 @@ esp_err_t ecl_led_init(
         return ESP_ERR_INVALID_ARG;
     }
 
-    esp_err_t err = led_validate_config(config);
+    esp_err_t err = ecl_io_led_validate_config(config);
     if (err != ESP_OK) {
         return err;
     }
@@ -68,7 +68,7 @@ esp_err_t ecl_led_init(
         return err;
     }
 
-    err = led_write(led, false);
+    err = ecl_io_led_write(led, false);
     if (err != ESP_OK) {
         return err;
     }
@@ -79,31 +79,31 @@ esp_err_t ecl_led_init(
 }
 
 /* Turn the LED on using the configured polarity. */
-esp_err_t ecl_led_on(ecl_led_t *led) {
-    return ecl_led_set(led, true);
+esp_err_t ecl_io_led_on(ecl_led_t *led) {
+    return ecl_io_led_set(led, true);
 }
 
 /* Turn the LED off using the configured polarity. */
-esp_err_t ecl_led_off(ecl_led_t *led) {
-    return ecl_led_set(led, false);
+esp_err_t ecl_io_led_off(ecl_led_t *led) {
+    return ecl_io_led_set(led, false);
 }
 
 /* Toggle the remembered logical LED state. */
-esp_err_t ecl_led_toggle(ecl_led_t *led) {
+esp_err_t ecl_io_led_toggle(ecl_led_t *led) {
     if (led == NULL || !led->initialized) {
         return ESP_ERR_INVALID_STATE;
     }
 
-    return ecl_led_set(led, !led->state);
+    return ecl_io_led_set(led, !led->state);
 }
 
 /* Set and remember the logical LED state. */
-esp_err_t ecl_led_set(ecl_led_t *led, bool on) {
+esp_err_t ecl_io_led_set(ecl_led_t *led, bool on) {
     if (led == NULL || !led->initialized) {
         return ESP_ERR_INVALID_STATE;
     }
 
-    esp_err_t err = led_write(led, on);
+    esp_err_t err = ecl_io_led_write(led, on);
     if (err != ESP_OK) {
         return err;
     }

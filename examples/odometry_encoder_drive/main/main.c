@@ -49,7 +49,7 @@ static uint32_t ticks_per_output_rev(const ecl_dc_motor_encoder_t *motor)
 static void init_motors(void)
 {
     ecl_dc_motor_encoder_config_t left_cfg =
-        ecl_dc_motor_encoder_default_config(
+        ecl_motor_dc_encoder_default_config(
             PIN_LEFT_IN1, PIN_LEFT_IN2, PIN_LEFT_IN1,
             PIN_LEFT_ENC_A, PIN_LEFT_ENC_B);
     left_cfg.motor.ledc_timer = LEDC_TIMER_2;
@@ -57,15 +57,15 @@ static void init_motors(void)
     left_cfg.gear_ratio = GEAR_RATIO;
 
     ecl_dc_motor_encoder_config_t right_cfg =
-        ecl_dc_motor_encoder_default_config(
+        ecl_motor_dc_encoder_default_config(
             PIN_RIGHT_IN1, PIN_RIGHT_IN2, PIN_RIGHT_IN1,
             PIN_RIGHT_ENC_A, PIN_RIGHT_ENC_B);
     right_cfg.motor.ledc_timer = LEDC_TIMER_2;
     right_cfg.motor.ledc_channel = LEDC_CHANNEL_2;
     right_cfg.gear_ratio = GEAR_RATIO;
 
-    ESP_ERROR_CHECK(ecl_dc_motor_encoder_init(&s_left_motor, &left_cfg));
-    ESP_ERROR_CHECK(ecl_dc_motor_encoder_init(&s_right_motor, &right_cfg));
+    ESP_ERROR_CHECK(ecl_motor_dc_encoder_init(&s_left_motor, &left_cfg));
+    ESP_ERROR_CHECK(ecl_motor_dc_encoder_init(&s_right_motor, &right_cfg));
 }
 
 void app_main(void)
@@ -78,17 +78,17 @@ void app_main(void)
     };
     ecl_algo_odometry_init(&s_odom, &odom_cfg);
 
-    ESP_ERROR_CHECK(ecl_dc_motor_encoder_get_pulses(&s_left_motor, &s_prev_left_pulses));
-    ESP_ERROR_CHECK(ecl_dc_motor_encoder_get_pulses(&s_right_motor, &s_prev_right_pulses));
+    ESP_ERROR_CHECK(ecl_motor_dc_encoder_get_pulses(&s_left_motor, &s_prev_left_pulses));
+    ESP_ERROR_CHECK(ecl_motor_dc_encoder_get_pulses(&s_right_motor, &s_prev_right_pulses));
 
-    ESP_ERROR_CHECK(ecl_dc_motor_encoder_set_speed(&s_left_motor, 35));
-    ESP_ERROR_CHECK(ecl_dc_motor_encoder_set_speed(&s_right_motor, 35));
+    ESP_ERROR_CHECK(ecl_motor_dc_encoder_set_speed(&s_left_motor, 35));
+    ESP_ERROR_CHECK(ecl_motor_dc_encoder_set_speed(&s_right_motor, 35));
 
     while (true) {
         int64_t left_pulses = 0;
         int64_t right_pulses = 0;
-        ESP_ERROR_CHECK(ecl_dc_motor_encoder_get_pulses(&s_left_motor, &left_pulses));
-        ESP_ERROR_CHECK(ecl_dc_motor_encoder_get_pulses(&s_right_motor, &right_pulses));
+        ESP_ERROR_CHECK(ecl_motor_dc_encoder_get_pulses(&s_left_motor, &left_pulses));
+        ESP_ERROR_CHECK(ecl_motor_dc_encoder_get_pulses(&s_right_motor, &right_pulses));
 
         int32_t delta_left = (int32_t)(left_pulses - s_prev_left_pulses);
         int32_t delta_right = (int32_t)(right_pulses - s_prev_right_pulses);

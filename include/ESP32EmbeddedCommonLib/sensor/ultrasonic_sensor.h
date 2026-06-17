@@ -23,22 +23,22 @@ typedef struct {
     bool initialized;
 } ecl_ultrasonic_sensor_t;
 
-ecl_ultrasonic_sensor_config_t ecl_ultrasonic_sensor_default_config(
+ecl_ultrasonic_sensor_config_t ecl_sensor_ultrasonic_sensor_default_config(
     gpio_num_t trigger_pin,
     gpio_num_t echo_pin
 );
 
-esp_err_t ecl_ultrasonic_sensor_init(
+esp_err_t ecl_sensor_ultrasonic_sensor_init(
     ecl_ultrasonic_sensor_t *sensor,
     const ecl_ultrasonic_sensor_config_t *config
 );
 
-esp_err_t ecl_ultrasonic_sensor_measure_distance_cm(
+esp_err_t ecl_sensor_ultrasonic_sensor_measure_distance_cm(
     ecl_ultrasonic_sensor_t *sensor,
     float *distance_cm
 );
 
-esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
+esp_err_t ecl_sensor_ultrasonic_sensor_measure_pulse_us(
     ecl_ultrasonic_sensor_t *sensor,
     uint32_t *pulse_width_us
 );

@@ -22,7 +22,7 @@
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
 /* Convert a float speed percentage to an int8 value clamped to [-100, 100]. */
-static int8_t motor_ctrl_clamp_pct(float v)
+static int8_t ecl_motor_control_clamp_pct(float v)
 {
     if (v >  100.0f) return  100;
     if (v < -100.0f) return -100;
@@ -64,7 +64,7 @@ esp_err_t ecl_motor_control_set_speed_rpm(
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
 
-    int8_t pct = motor_ctrl_clamp_pct((rpm / motor->config.rpm_max) * 100.0f);
+    int8_t pct = ecl_motor_control_clamp_pct((rpm / motor->config.rpm_max) * 100.0f);
     return ecl_motor_control_set_speed_pct(motor, pct);
 }
 

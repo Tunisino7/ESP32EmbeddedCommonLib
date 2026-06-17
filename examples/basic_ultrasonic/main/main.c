@@ -9,14 +9,14 @@ void app_main(void) {
     static const char *TAG = "basic_ultrasonic";
 
     ecl_ultrasonic_sensor_config_t config =
-        ecl_ultrasonic_sensor_default_config(GPIO_NUM_5, GPIO_NUM_18);
+        ecl_sensor_ultrasonic_sensor_default_config(GPIO_NUM_5, GPIO_NUM_18);
 
     ecl_ultrasonic_sensor_t sensor = {0};
-    ESP_ERROR_CHECK(ecl_ultrasonic_sensor_init(&sensor, &config));
+    ESP_ERROR_CHECK(ecl_sensor_ultrasonic_sensor_init(&sensor, &config));
 
     while (true) {
         float distance_cm = 0.0f;
-        esp_err_t err = ecl_ultrasonic_sensor_measure_distance_cm(&sensor, &distance_cm);
+        esp_err_t err = ecl_sensor_ultrasonic_sensor_measure_distance_cm(&sensor, &distance_cm);
 
         if (err == ESP_OK) {
             ESP_LOGI(TAG, "Distance: %.2f cm", distance_cm);

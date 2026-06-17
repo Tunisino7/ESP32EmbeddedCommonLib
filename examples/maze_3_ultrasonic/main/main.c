@@ -66,7 +66,7 @@ static void stop_drive(void)
 static bool is_wall_detected(ecl_ultrasonic_sensor_t *sensor)
 {
     float cm = 0.0f;
-    esp_err_t err = ecl_ultrasonic_sensor_measure_distance_cm(sensor, &cm);
+    esp_err_t err = ecl_sensor_ultrasonic_sensor_measure_distance_cm(sensor, &cm);
     if (err != ESP_OK) {
         ESP_LOGW(TAG, "Ultrasonic read failed: %s", esp_err_to_name(err));
         return true;
@@ -107,14 +107,14 @@ static void drive_one_cell(void)
 static void init_drive(void)
 {
     ecl_drv8833_config_t bridge_cfg =
-        ecl_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
+        ecl_driver_drv8833_default_config(PIN_AIN1, PIN_AIN2, PIN_BIN1, PIN_BIN2);
     bridge_cfg.pin_nsleep = PIN_NSLEEP;
     bridge_cfg.pin_nfault = PIN_NFAULT;
 
-    ESP_ERROR_CHECK(ecl_drv8833_init(&s_bridge, &bridge_cfg));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_init(&s_bridge, &bridge_cfg));
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_A, &s_left_ctx, &s_left_hbridge));
-    ESP_ERROR_CHECK(ecl_drv8833_bind_hbridge(
+    ESP_ERROR_CHECK(ecl_driver_drv8833_bind_hbridge(
         &s_bridge, ECL_DRV8833_CHANNEL_B, &s_right_ctx, &s_right_hbridge));
 
     const ecl_motor_control_config_t motor_cfg = {
@@ -128,22 +128,22 @@ static void init_drive(void)
 static void init_ultrasonic(void)
 {
     ecl_ultrasonic_sensor_config_t left_cfg =
-        ecl_ultrasonic_sensor_default_config(PIN_US_LEFT_TRIG, PIN_US_LEFT_ECHO);
+        ecl_sensor_ultrasonic_sensor_default_config(PIN_US_LEFT_TRIG, PIN_US_LEFT_ECHO);
     ecl_ultrasonic_sensor_config_t front_cfg =
-        ecl_ultrasonic_sensor_default_config(PIN_US_FRONT_TRIG, PIN_US_FRONT_ECHO);
+        ecl_sensor_ultrasonic_sensor_default_config(PIN_US_FRONT_TRIG, PIN_US_FRONT_ECHO);
     ecl_ultrasonic_sensor_config_t right_cfg =
-        ecl_ultrasonic_sensor_default_config(PIN_US_RIGHT_TRIG, PIN_US_RIGHT_ECHO);
+        ecl_sensor_ultrasonic_sensor_default_config(PIN_US_RIGHT_TRIG, PIN_US_RIGHT_ECHO);
 
-    ESP_ERROR_CHECK(ecl_ultrasonic_sensor_init(&s_left_us, &left_cfg));
-    ESP_ERROR_CHECK(ecl_ultrasonic_sensor_init(&s_front_us, &front_cfg));
-    ESP_ERROR_CHECK(ecl_ultrasonic_sensor_init(&s_right_us, &right_cfg));
+    ESP_ERROR_CHECK(ecl_sensor_ultrasonic_sensor_init(&s_left_us, &left_cfg));
+    ESP_ERROR_CHECK(ecl_sensor_ultrasonic_sensor_init(&s_front_us, &front_cfg));
+    ESP_ERROR_CHECK(ecl_sensor_ultrasonic_sensor_init(&s_right_us, &right_cfg));
 }
 
 void app_main(void)
 {
     init_drive();
     init_ultrasonic();
-    ecl_algo_maze_solver_init(&s_solver, ECL_MAZE_FOLLOW_LEFT, ECL_MAZE_NORTH);
+    ecl_algo_maze_init(&s_solver, ECL_MAZE_FOLLOW_LEFT, ECL_MAZE_NORTH);
 
     while (true) {
         bool wall_left = is_wall_detected(&s_left_us);
@@ -151,15 +151,15 @@ void app_main(void)
         bool wall_right = is_wall_detected(&s_right_us);
 
         ecl_maze_turn_t turn =
-            ecl_algo_maze_solver_next_turn(&s_solver, wall_left, wall_front, wall_right);
+            ecl_algo_maze_next_turn(&s_solver, wall_left, wall_front, wall_right);
 
         ESP_LOGI(TAG, "walls L/F/R=%d/%d/%d turn=%d heading=%d",
                  wall_left, wall_front, wall_right, turn,
-                 ecl_algo_maze_solver_get_heading(&s_solver));
+                 ecl_algo_maze_get_heading(&s_solver));
 
         execute_turn(turn);
-        ecl_algo_maze_solver_apply_turn(&s_solver, turn);
-        ESP_LOGI(TAG, "new heading=%d", ecl_algo_maze_solver_get_heading(&s_solver));
+        ecl_algo_maze_apply_turn(&s_solver, turn);
+        ESP_LOGI(TAG, "new heading=%d", ecl_algo_maze_get_heading(&s_solver));
 
         drive_one_cell();
     }

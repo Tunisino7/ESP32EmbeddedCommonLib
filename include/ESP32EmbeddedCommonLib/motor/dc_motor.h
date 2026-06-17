@@ -57,13 +57,13 @@ typedef struct {
  * @brief Build a default configuration.
  *
  * Selects LEDC_TIMER_0 / LEDC_CHANNEL_0, 10 kHz, 10-bit, coast on stop.
- * Override any field before calling ecl_dc_motor_init().
+ * Override any field before calling ecl_motor_dc_init().
  *
  * @param pin_in1  H-bridge IN1 GPIO.
  * @param pin_in2  H-bridge IN2 GPIO.
  * @param pin_pwm  H-bridge PWM/EN GPIO.
  */
-ecl_dc_motor_config_t ecl_dc_motor_default_config(
+ecl_dc_motor_config_t ecl_motor_dc_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
     gpio_num_t pin_pwm
@@ -76,7 +76,7 @@ ecl_dc_motor_config_t ecl_dc_motor_default_config(
  * @param config  Hardware configuration (copied into the instance).
  * @return ESP_OK on success, ESP_ERR_INVALID_ARG if any argument is invalid.
  */
-esp_err_t ecl_dc_motor_init(
+esp_err_t ecl_motor_dc_init(
     ecl_dc_motor_t              *motor,
     const ecl_dc_motor_config_t *config
 );
@@ -89,7 +89,7 @@ esp_err_t ecl_dc_motor_init(
  *                  Positive = forward, negative = reverse, 0 = stop.
  * @return ESP_OK on success, ESP_ERR_INVALID_STATE if not initialised.
  */
-esp_err_t ecl_dc_motor_set_speed(
+esp_err_t ecl_motor_dc_set_speed(
     ecl_dc_motor_t *motor,
     int8_t speed_pct
 );
@@ -97,12 +97,12 @@ esp_err_t ecl_dc_motor_set_speed(
 /**
  * @brief Stop the motor (coast or active brake depending on config.brake_on_stop).
  */
-esp_err_t ecl_dc_motor_stop(ecl_dc_motor_t *motor);
+esp_err_t ecl_motor_dc_stop(ecl_dc_motor_t *motor);
 
 /**
  * @brief Release LEDC resources and reset the instance.
  */
-esp_err_t ecl_dc_motor_deinit(ecl_dc_motor_t *motor);
+esp_err_t ecl_motor_dc_deinit(ecl_dc_motor_t *motor);
 
 #ifdef __cplusplus
 }

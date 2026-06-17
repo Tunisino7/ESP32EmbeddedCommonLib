@@ -78,7 +78,7 @@ typedef struct {
  * @param pin_enc_a Encoder channel A.
  * @param pin_enc_b Encoder channel B (GPIO_NUM_NC for 2× mode).
  */
-ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
+ecl_dc_motor_encoder_config_t ecl_motor_dc_encoder_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
     gpio_num_t pin_pwm,
@@ -96,19 +96,19 @@ ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
  * @param config  Hardware configuration (copied into the instance).
  * @return ESP_OK on success.
  */
-esp_err_t ecl_dc_motor_encoder_init(
+esp_err_t ecl_motor_dc_encoder_init(
     ecl_dc_motor_encoder_t              *motor,
     const ecl_dc_motor_encoder_config_t *config
 );
 
 /** @brief Set motor speed [−100, +100] %. */
-esp_err_t ecl_dc_motor_encoder_set_speed(
+esp_err_t ecl_motor_dc_encoder_set_speed(
     ecl_dc_motor_encoder_t *motor,
     int8_t speed_pct
 );
 
 /** @brief Stop the motor (coast or brake per config). */
-esp_err_t ecl_dc_motor_encoder_stop(
+esp_err_t ecl_motor_dc_encoder_stop(
     ecl_dc_motor_encoder_t *motor
 );
 
@@ -121,7 +121,7 @@ esp_err_t ecl_dc_motor_encoder_stop(
  * @param motor   Initialised instance.
  * @param pulses  Output: total pulse count (int64_t, overflow-safe).
  */
-esp_err_t ecl_dc_motor_encoder_get_pulses(
+esp_err_t ecl_motor_dc_encoder_get_pulses(
     ecl_dc_motor_encoder_t *motor,
     int64_t *pulses
 );
@@ -135,7 +135,7 @@ esp_err_t ecl_dc_motor_encoder_get_pulses(
  * @param motor  Initialised instance.
  * @param rpm    Output: RPM at the gearbox output shaft (positive = forward).
  */
-esp_err_t ecl_dc_motor_encoder_get_rpm(
+esp_err_t ecl_motor_dc_encoder_get_rpm(
     ecl_dc_motor_encoder_t *motor,
     float *rpm
 );
@@ -145,14 +145,14 @@ esp_err_t ecl_dc_motor_encoder_get_rpm(
  *
  * Also resets the RPM reference so the next get_rpm() call re-seeds.
  */
-esp_err_t ecl_dc_motor_encoder_reset_count(
+esp_err_t ecl_motor_dc_encoder_reset_count(
     ecl_dc_motor_encoder_t *motor
 );
 
 /**
  * @brief Stop the motor and release all LEDC + PCNT hardware resources.
  */
-esp_err_t ecl_dc_motor_encoder_deinit(
+esp_err_t ecl_motor_dc_encoder_deinit(
     ecl_dc_motor_encoder_t *motor
 );
 

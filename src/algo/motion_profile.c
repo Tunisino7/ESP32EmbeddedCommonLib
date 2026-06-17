@@ -5,7 +5,7 @@
  * stepping instantly.  This avoids wheel slip, motor stall, and mechanical
  * shock when starting or stopping.
  *
- * On each call to ecl_algo_motion_profile_update(dt_s):
+ * On each call to ecl_algo_motion_update(dt_s):
  *   1. Compute the velocity error (target − current).
  *   2. Choose max_accel if accelerating, max_decel if decelerating.
  *   3. Advance current_vel by at most (rate * dt_s) toward target_vel.
@@ -20,20 +20,12 @@
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
 /* Return the absolute value of a float without pulling in libm. */
-static float mp_fabsf(float v) { return v < 0.0f ? -v : v; }
-
-/* Clamp a float to the inclusive [lo, hi] interval. */
-static float mp_clampf(float v, float lo, float hi)
-{
-    if (v < lo) return lo;
-    if (v > hi) return hi;
-    return v;
-}
+static float ecl_algo_motion_fabsf(float v) { return v < 0.0f ? -v : v; }
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Initialise a trapezoidal velocity profile with acceleration limits. */
-void ecl_algo_motion_profile_init(
+void ecl_algo_motion_init(
     ecl_motion_profile_t *mp,
     float max_accel,
     float max_decel,
@@ -50,7 +42,7 @@ void ecl_algo_motion_profile_init(
 }
 
 /* Set the target velocity that subsequent profile updates will approach. */
-void ecl_algo_motion_profile_set_target(
+void ecl_algo_motion_set_target(
     ecl_motion_profile_t *mp,
     float target_vel)
 {
@@ -59,7 +51,7 @@ void ecl_algo_motion_profile_set_target(
 }
 
 /* Advance the velocity profile by one time step and return current velocity. */
-float ecl_algo_motion_profile_update(
+float ecl_algo_motion_update(
     ecl_motion_profile_t *mp,
     float dt_s)
 {
@@ -67,7 +59,7 @@ float ecl_algo_motion_profile_update(
 
     float error = mp->target_vel - mp->current_vel;
 
-    if (mp_fabsf(error) < 1e-6f) {
+    if (ecl_algo_motion_fabsf(error) < 1e-6f) {
         /* Snap to target when the residual is below float precision noise.
          * Avoids infinite oscillation around the target due to rounding. */
         mp->current_vel = mp->target_vel;
@@ -80,7 +72,7 @@ float ecl_algo_motion_profile_update(
     float max_step = rate * dt_s;
 
     /* Clamp step so we never overshoot the target. */
-    if (mp_fabsf(error) <= max_step) {
+    if (ecl_algo_motion_fabsf(error) <= max_step) {
         mp->current_vel = mp->target_vel;
     } else {
         mp->current_vel += (error > 0.0f ? max_step : -max_step);
@@ -90,7 +82,7 @@ float ecl_algo_motion_profile_update(
 }
 
 /* Report whether the profile has reached its target within float tolerance. */
-bool ecl_algo_motion_profile_is_settled(
+bool ecl_algo_motion_is_settled(
     const ecl_motion_profile_t *mp)
 {
     if (mp == NULL) return true;

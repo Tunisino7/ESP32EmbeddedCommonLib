@@ -8,7 +8,7 @@
 /* ── Private: overflow ISR callback ─────────────────────────────────────── */
 
 /* Accumulate PCNT high/low watch-point reaches so logical counts do not wrap. */
-static bool IRAM_ATTR pcnt_encoder_overflow_cb(
+static bool IRAM_ATTR ecl_motor_pcnt_encoder_overflow_cb(
     pcnt_unit_handle_t unit,
     const pcnt_watch_event_data_t *edata,
     void *user_data)
@@ -26,7 +26,7 @@ static bool IRAM_ATTR pcnt_encoder_overflow_cb(
 /* ── Private: atomic snapshot ────────────────────────────────────────────── */
 
 /* Read the software accumulator plus hardware PCNT count atomically. */
-static int64_t pcnt_encoder_total(ecl_pcnt_encoder_t *enc)
+static int64_t ecl_motor_pcnt_encoder_total(ecl_pcnt_encoder_t *enc)
 {
     int hw = 0;
 
@@ -41,7 +41,7 @@ static int64_t pcnt_encoder_total(ecl_pcnt_encoder_t *enc)
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Build a default standalone PCNT encoder configuration for pins A and B. */
-ecl_pcnt_encoder_config_t ecl_pcnt_encoder_default_config(
+ecl_pcnt_encoder_config_t ecl_motor_pcnt_encoder_default_config(
     gpio_num_t pin_a,
     gpio_num_t pin_b)
 {
@@ -55,7 +55,7 @@ ecl_pcnt_encoder_config_t ecl_pcnt_encoder_default_config(
 }
 
 /* Initialise PCNT quadrature or single-channel encoder counting. */
-esp_err_t ecl_pcnt_encoder_init(
+esp_err_t ecl_motor_pcnt_encoder_init(
     ecl_pcnt_encoder_t              *enc,
     const ecl_pcnt_encoder_config_t *config)
 {
@@ -89,7 +89,7 @@ esp_err_t ecl_pcnt_encoder_init(
     if (err != ESP_OK) goto fail_unit;
 
     /* Overflow callback */
-    pcnt_event_callbacks_t cbs = { .on_reach = pcnt_encoder_overflow_cb };
+    pcnt_event_callbacks_t cbs = { .on_reach = ecl_motor_pcnt_encoder_overflow_cb };
     err = pcnt_unit_register_event_callbacks(enc->pcnt_unit, &cbs, enc);
     if (err != ESP_OK) goto fail_unit;
 
@@ -168,19 +168,19 @@ fail_unit:
 }
 
 /* Read the accumulated signed encoder pulse count. */
-esp_err_t ecl_pcnt_encoder_get_pulses(
+esp_err_t ecl_motor_pcnt_encoder_get_pulses(
     ecl_pcnt_encoder_t *enc,
     int64_t *pulses)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
     if (pulses == NULL)                   return ESP_ERR_INVALID_ARG;
 
-    *pulses = pcnt_encoder_total(enc);
+    *pulses = ecl_motor_pcnt_encoder_total(enc);
     return ESP_OK;
 }
 
 /* Compute output-shaft RPM since the previous RPM sample. */
-esp_err_t ecl_pcnt_encoder_get_rpm(
+esp_err_t ecl_motor_pcnt_encoder_get_rpm(
     ecl_pcnt_encoder_t *enc,
     float *rpm)
 {
@@ -188,7 +188,7 @@ esp_err_t ecl_pcnt_encoder_get_rpm(
     if (rpm == NULL)                      return ESP_ERR_INVALID_ARG;
 
     int64_t now_us     = (int64_t)esp_timer_get_time();
-    int64_t now_pulses = pcnt_encoder_total(enc);
+    int64_t now_pulses = ecl_motor_pcnt_encoder_total(enc);
 
     if (enc->rpm_ref_time_us == 0) {
         enc->rpm_ref_time_us = now_us;
@@ -218,7 +218,7 @@ esp_err_t ecl_pcnt_encoder_get_rpm(
 }
 
 /* Clear encoder counts and reset RPM reference timing. */
-esp_err_t ecl_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc)
+esp_err_t ecl_motor_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
 
@@ -235,7 +235,7 @@ esp_err_t ecl_pcnt_encoder_reset(ecl_pcnt_encoder_t *enc)
 }
 
 /* Stop and release the PCNT unit and encoder channels. */
-esp_err_t ecl_pcnt_encoder_deinit(ecl_pcnt_encoder_t *enc)
+esp_err_t ecl_motor_pcnt_encoder_deinit(ecl_pcnt_encoder_t *enc)
 {
     if (enc == NULL || !enc->initialized) return ESP_ERR_INVALID_STATE;
 

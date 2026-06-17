@@ -7,6 +7,9 @@ This library is written in pure C, not Arduino and not C++.
 ## Current components
 
 - `ultrasonic_sensor`: blocking HC-SR04-style ultrasonic distance sensor driver using ESP-IDF GPIO and timers.
+- `ir_line_sensor`, `bmi160`: sensor helpers.
+- `drv8833`, `dc_motor`, `dc_motor_encoder`, `motor_control`, `pcnt_encoder`: motor drivers and control helpers.
+- `pid`, `maze_solver`, `filter`, `motion_profile`, `odometry`: reusable robot algorithms.
 
 ## Include
 
@@ -17,14 +20,14 @@ This library is written in pure C, not Arduino and not C++.
 ## Example
 
 ```c
-esp32_common_ultrasonic_sensor_config_t config =
-    esp32_common_ultrasonic_sensor_default_config(GPIO_NUM_5, GPIO_NUM_18);
+ecl_ultrasonic_sensor_config_t config =
+    ecl_sensor_ultrasonic_sensor_default_config(GPIO_NUM_5, GPIO_NUM_18);
 
-esp32_common_ultrasonic_sensor_t sensor = {0};
-esp_err_t err = esp32_common_ultrasonic_sensor_init(&sensor, &config);
+ecl_ultrasonic_sensor_t sensor = {0};
+esp_err_t err = ecl_sensor_ultrasonic_sensor_init(&sensor, &config);
 
 float distance_cm = 0.0f;
-err = esp32_common_ultrasonic_sensor_measure_distance_cm(&sensor, &distance_cm);
+err = ecl_sensor_ultrasonic_sensor_measure_distance_cm(&sensor, &distance_cm);
 if (err == ESP_OK) {
     /* use distance_cm */
 }
@@ -33,23 +36,23 @@ if (err == ESP_OK) {
 ## API
 
 ```c
-esp32_common_ultrasonic_sensor_config_t esp32_common_ultrasonic_sensor_default_config(
+ecl_ultrasonic_sensor_config_t ecl_sensor_ultrasonic_sensor_default_config(
     gpio_num_t trigger_pin,
     gpio_num_t echo_pin
 );
 
-esp_err_t esp32_common_ultrasonic_sensor_init(
-    esp32_common_ultrasonic_sensor_t *sensor,
-    const esp32_common_ultrasonic_sensor_config_t *config
+esp_err_t ecl_sensor_ultrasonic_sensor_init(
+    ecl_ultrasonic_sensor_t *sensor,
+    const ecl_ultrasonic_sensor_config_t *config
 );
 
-esp_err_t esp32_common_ultrasonic_sensor_measure_distance_cm(
-    esp32_common_ultrasonic_sensor_t *sensor,
+esp_err_t ecl_sensor_ultrasonic_sensor_measure_distance_cm(
+    ecl_ultrasonic_sensor_t *sensor,
     float *distance_cm
 );
 
-esp_err_t esp32_common_ultrasonic_sensor_measure_pulse_us(
-    esp32_common_ultrasonic_sensor_t *sensor,
+esp_err_t ecl_sensor_ultrasonic_sensor_measure_pulse_us(
+    ecl_ultrasonic_sensor_t *sensor,
     uint32_t *pulse_width_us
 );
 ```
