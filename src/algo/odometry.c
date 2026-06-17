@@ -32,17 +32,17 @@
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Initialise odometry configuration and reset the pose to the origin. */
-void ecl_odometry_init(
+void ecl_algo_odometry_init(
     ecl_odometry_t              *odom,
     const ecl_odometry_config_t *config)
 {
     if (odom == NULL || config == NULL) return;
     odom->config = *config;
-    ecl_odometry_reset(odom);
+    ecl_algo_odometry_reset(odom);
 }
 
 /* Integrate left/right encoder deltas into the differential-drive pose. */
-void ecl_odometry_update(
+void ecl_algo_odometry_update(
     ecl_odometry_t *odom,
     int32_t  delta_left,
     int32_t  delta_right,
@@ -75,7 +75,7 @@ void ecl_odometry_update(
 }
 
 /* Copy the current odometry pose into the caller-provided output struct. */
-void ecl_odometry_get_pose(
+void ecl_algo_odometry_get_pose(
     const ecl_odometry_t *odom,
     ecl_pose_t           *pose)
 {
@@ -84,7 +84,7 @@ void ecl_odometry_get_pose(
 }
 
 /* Reset the odometry pose to x=0, y=0, theta=0 while preserving config. */
-void ecl_odometry_reset(ecl_odometry_t *odom)
+void ecl_algo_odometry_reset(ecl_odometry_t *odom)
 {
     if (odom == NULL) return;
     odom->pose.x_m      = 0.0f;

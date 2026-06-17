@@ -33,7 +33,7 @@ typedef struct {
  * @param alpha          Gyro weight, typically 0.95–0.99.
  * @param initial_angle  Starting angle estimate (degrees).
  */
-void ecl_complementary_filter_init(
+void ecl_algo_complementary_filter_init(
     ecl_complementary_filter_t *f,
     float alpha,
     float initial_angle
@@ -48,7 +48,7 @@ void ecl_complementary_filter_init(
  * @param dt_s           Time since last update (seconds).
  * @return               Fused angle estimate (degrees).
  */
-float ecl_complementary_filter_update(
+float ecl_algo_complementary_filter_update(
     ecl_complementary_filter_t *f,
     float gyro_dps,
     float accel_angle_deg,
@@ -80,7 +80,7 @@ typedef struct {
  * @param f       Filter instance.
  * @param window  Number of samples to average (1 … MAX_WINDOW).
  */
-void ecl_moving_avg_init(
+void ecl_algo_moving_avg_init(
     ecl_moving_avg_t *f,
     uint32_t window
 );
@@ -92,7 +92,7 @@ void ecl_moving_avg_init(
  * @param value  New sample.
  * @return       Running average over the window.
  */
-float ecl_moving_avg_update(
+float ecl_algo_moving_avg_update(
     ecl_moving_avg_t *f,
     float value
 );
@@ -100,7 +100,7 @@ float ecl_moving_avg_update(
 /**
  * @brief Reset the filter (clears buffer and running sum).
  */
-void ecl_moving_avg_reset(ecl_moving_avg_t *f);
+void ecl_algo_moving_avg_reset(ecl_moving_avg_t *f);
 
 /* ── Low-pass filter (single-pole IIR) ──────────────────────────────────── */
 
@@ -124,7 +124,7 @@ typedef struct {
  * @param alpha          Smoothing coefficient (0 < alpha ≤ 1).
  * @param initial_value  Starting output value.
  */
-void ecl_lpf_init(
+void ecl_algo_lpf_init(
     ecl_lpf_t *f,
     float alpha,
     float initial_value
@@ -137,7 +137,7 @@ void ecl_lpf_init(
  * @param input  Raw input sample.
  * @return       Filtered output.
  */
-float ecl_lpf_update(ecl_lpf_t *f, float input);
+float ecl_algo_lpf_update(ecl_lpf_t *f, float input);
 
 #ifdef __cplusplus
 }

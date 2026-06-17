@@ -28,7 +28,7 @@
 /* ── Complementary filter ────────────────────────────────────────────────── */
 
 /* Initialise a complementary filter with a clamped gyro weight and angle. */
-void ecl_complementary_filter_init(
+void ecl_algo_complementary_filter_init(
     ecl_complementary_filter_t *f,
     float alpha,
     float initial_angle)
@@ -41,7 +41,7 @@ void ecl_complementary_filter_init(
 }
 
 /* Fuse one gyro rate and accelerometer angle sample into a filtered angle. */
-float ecl_complementary_filter_update(
+float ecl_algo_complementary_filter_update(
     ecl_complementary_filter_t *f,
     float gyro_dps,
     float accel_angle_deg,
@@ -60,7 +60,7 @@ float ecl_complementary_filter_update(
 /* ── Moving-average filter ───────────────────────────────────────────────── */
 
 /* Initialise a moving-average filter and clear its circular sample buffer. */
-void ecl_moving_avg_init(
+void ecl_algo_moving_avg_init(
     ecl_moving_avg_t *f,
     uint32_t window)
 {
@@ -76,7 +76,7 @@ void ecl_moving_avg_init(
 }
 
 /* Add one sample to the moving-average filter and return the current mean. */
-float ecl_moving_avg_update(
+float ecl_algo_moving_avg_update(
     ecl_moving_avg_t *f,
     float value)
 {
@@ -99,7 +99,7 @@ float ecl_moving_avg_update(
 }
 
 /* Clear all moving-average samples while preserving the configured window. */
-void ecl_moving_avg_reset(ecl_moving_avg_t *f)
+void ecl_algo_moving_avg_reset(ecl_moving_avg_t *f)
 {
     if (f == NULL) return;
     memset(f->buf, 0, sizeof(f->buf));
@@ -111,7 +111,7 @@ void ecl_moving_avg_reset(ecl_moving_avg_t *f)
 /* ── Low-pass filter ─────────────────────────────────────────────────────── */
 
 /* Initialise a first-order low-pass filter with a clamped smoothing factor. */
-void ecl_lpf_init(
+void ecl_algo_lpf_init(
     ecl_lpf_t *f,
     float alpha,
     float initial_value)
@@ -124,7 +124,7 @@ void ecl_lpf_init(
 }
 
 /* Apply one first-order IIR low-pass update and return the filtered output. */
-float ecl_lpf_update(ecl_lpf_t *f, float input)
+float ecl_algo_lpf_update(ecl_lpf_t *f, float input)
 {
     if (f == NULL) return input;
     f->output = f->alpha * input + (1.0f - f->alpha) * f->output;

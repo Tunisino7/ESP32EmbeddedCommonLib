@@ -25,7 +25,7 @@
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Initialise PID gains, output limits, anti-windup limit, and state. */
-void ecl_pid_init(
+void ecl_algo_pid_init(
     ecl_pid_t *pid,
     float kp, float ki, float kd,
     float output_min, float output_max,
@@ -45,7 +45,7 @@ void ecl_pid_init(
 }
 
 /* Compute one PID control output from setpoint, measurement, and timestep. */
-float ecl_pid_update(
+float ecl_algo_pid_update(
     ecl_pid_t *pid,
     float setpoint,
     float measurement,
@@ -84,7 +84,7 @@ float ecl_pid_update(
 }
 
 /* Clear accumulated PID state while keeping gains and configured limits. */
-void ecl_pid_reset(ecl_pid_t *pid)
+void ecl_algo_pid_reset(ecl_pid_t *pid)
 {
     if (pid == NULL) return;
     pid->integral         = 0.0f;

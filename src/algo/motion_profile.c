@@ -5,7 +5,7 @@
  * stepping instantly.  This avoids wheel slip, motor stall, and mechanical
  * shock when starting or stopping.
  *
- * On each call to _update(dt_s):
+ * On each call to ecl_algo_motion_profile_update(dt_s):
  *   1. Compute the velocity error (target − current).
  *   2. Choose max_accel if accelerating, max_decel if decelerating.
  *   3. Advance current_vel by at most (rate * dt_s) toward target_vel.
@@ -33,7 +33,7 @@ static float mp_clampf(float v, float lo, float hi)
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
 /* Initialise a trapezoidal velocity profile with acceleration limits. */
-void ecl_motion_profile_init(
+void ecl_algo_motion_profile_init(
     ecl_motion_profile_t *mp,
     float max_accel,
     float max_decel,
@@ -50,7 +50,7 @@ void ecl_motion_profile_init(
 }
 
 /* Set the target velocity that subsequent profile updates will approach. */
-void ecl_motion_profile_set_target(
+void ecl_algo_motion_profile_set_target(
     ecl_motion_profile_t *mp,
     float target_vel)
 {
@@ -59,7 +59,7 @@ void ecl_motion_profile_set_target(
 }
 
 /* Advance the velocity profile by one time step and return current velocity. */
-float ecl_motion_profile_update(
+float ecl_algo_motion_profile_update(
     ecl_motion_profile_t *mp,
     float dt_s)
 {
@@ -90,7 +90,7 @@ float ecl_motion_profile_update(
 }
 
 /* Report whether the profile has reached its target within float tolerance. */
-bool ecl_motion_profile_is_settled(
+bool ecl_algo_motion_profile_is_settled(
     const ecl_motion_profile_t *mp)
 {
     if (mp == NULL) return true;

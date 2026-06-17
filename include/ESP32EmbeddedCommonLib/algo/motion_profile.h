@@ -17,7 +17,7 @@ extern "C" {
  *
  * Useful for avoiding wheel slip and mechanical shock on start/stop.
  *
- * Call ecl_motion_profile_update() at a fixed rate to get the next
+ * Call ecl_algo_motion_profile_update() at a fixed rate to get the next
  * velocity setpoint.
  */
 typedef struct {
@@ -35,7 +35,7 @@ typedef struct {
  * @param max_decel    Maximum deceleration (must be > 0).
  * @param initial_vel  Starting velocity (current actual velocity).
  */
-void ecl_motion_profile_init(
+void ecl_algo_motion_profile_init(
     ecl_motion_profile_t *mp,
     float max_accel,
     float max_decel,
@@ -46,12 +46,12 @@ void ecl_motion_profile_init(
  * @brief Set a new target velocity.
  *
  * The profile will ramp current_vel toward target_vel on subsequent
- * _update() calls.
+ * ecl_algo_motion_profile_update() calls.
  *
  * @param mp          Initialised profile.
  * @param target_vel  Desired velocity (same units as max_accel).
  */
-void ecl_motion_profile_set_target(
+void ecl_algo_motion_profile_set_target(
     ecl_motion_profile_t *mp,
     float target_vel
 );
@@ -63,7 +63,7 @@ void ecl_motion_profile_set_target(
  * @param dt_s  Time elapsed since the last call (seconds).
  * @return      Velocity setpoint for this time step.
  */
-float ecl_motion_profile_update(
+float ecl_algo_motion_profile_update(
     ecl_motion_profile_t *mp,
     float dt_s
 );
@@ -71,7 +71,7 @@ float ecl_motion_profile_update(
 /**
  * @brief Returns true when current_vel == target_vel (profile settled).
  */
-bool ecl_motion_profile_is_settled(
+bool ecl_algo_motion_profile_is_settled(
     const ecl_motion_profile_t *mp
 );
 

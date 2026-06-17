@@ -51,7 +51,7 @@ typedef struct {
  * @param rule            Left-hand or right-hand wall following.
  * @param initial_heading Starting heading of the robot.
  */
-void ecl_maze_solver_init(
+void ecl_algo_maze_solver_init(
     ecl_maze_solver_t *solver,
     ecl_maze_follow_t  rule,
     ecl_maze_heading_t initial_heading
@@ -61,7 +61,8 @@ void ecl_maze_solver_init(
  * @brief Compute the next turn given the current wall sensors.
  *
  * Call this once per decision point (intersection / dead-end).
- * The solver updates its internal heading automatically.
+ * This does not update heading; call ecl_algo_maze_solver_apply_turn() after the
+ * robot physically completes the returned turn.
  *
  * @param solver      Initialised solver.
  * @param wall_left   true if a wall is detected to the left.
@@ -69,7 +70,7 @@ void ecl_maze_solver_init(
  * @param wall_right  true if a wall is detected to the right.
  * @return            Turn instruction to execute.
  */
-ecl_maze_turn_t ecl_maze_solver_update(
+ecl_maze_turn_t ecl_algo_maze_solver_next_turn(
     ecl_maze_solver_t *solver,
     bool wall_left,
     bool wall_front,
@@ -84,7 +85,7 @@ ecl_maze_turn_t ecl_maze_solver_update(
  * @param solver  Solver instance.
  * @param turn    The turn that was executed.
  */
-void ecl_maze_solver_apply_turn(
+void ecl_algo_maze_solver_apply_turn(
     ecl_maze_solver_t *solver,
     ecl_maze_turn_t    turn
 );
@@ -92,7 +93,7 @@ void ecl_maze_solver_apply_turn(
 /**
  * @brief Return the current heading of the solver.
  */
-ecl_maze_heading_t ecl_maze_solver_heading(
+ecl_maze_heading_t ecl_algo_maze_solver_get_heading(
     const ecl_maze_solver_t *solver
 );
 

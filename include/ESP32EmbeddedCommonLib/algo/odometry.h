@@ -11,7 +11,7 @@ extern "C" {
 /**
  * @brief 2-D pose estimate for a differential-drive robot.
  *
- * Origin is the position at the last call to ecl_odometry_reset().
+ * Origin is the position at the last call to ecl_algo_odometry_reset().
  * Heading theta is measured from the positive X-axis, counter-clockwise,
  * in radians.
  */
@@ -45,7 +45,7 @@ typedef struct {
  * @param odom    Instance to initialise.
  * @param config  Physical parameters.
  */
-void ecl_odometry_init(
+void ecl_algo_odometry_init(
     ecl_odometry_t              *odom,
     const ecl_odometry_config_t *config
 );
@@ -61,7 +61,7 @@ void ecl_odometry_init(
  * @param delta_right   Ticks from right encoder since last update (+= forward).
  * @param ticks_per_rev Total encoder ticks per full wheel revolution.
  */
-void ecl_odometry_update(
+void ecl_algo_odometry_update(
     ecl_odometry_t *odom,
     int32_t delta_left,
     int32_t delta_right,
@@ -74,7 +74,7 @@ void ecl_odometry_update(
  * @param odom  Initialised odometry instance.
  * @param pose  Output pose (may not be NULL).
  */
-void ecl_odometry_get_pose(
+void ecl_algo_odometry_get_pose(
     const ecl_odometry_t *odom,
     ecl_pose_t           *pose
 );
@@ -82,7 +82,7 @@ void ecl_odometry_get_pose(
 /**
  * @brief Reset pose to (0, 0, 0).
  */
-void ecl_odometry_reset(ecl_odometry_t *odom);
+void ecl_algo_odometry_reset(ecl_odometry_t *odom);
 
 #ifdef __cplusplus
 }

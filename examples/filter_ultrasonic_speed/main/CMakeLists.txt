@@ -7,5 +7,4 @@ idf_component_register(
         ESP32EmbeddedCommonLib
         esp_log
         freertos
-        esp_timer
 )

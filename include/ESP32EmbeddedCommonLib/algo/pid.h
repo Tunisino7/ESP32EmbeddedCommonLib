@@ -30,10 +30,10 @@ typedef struct {
     float output_max;     /**< Maximum controller output (e.g. +100).         */
     float integral_limit; /**< Anti-windup: caps |integral| to this value.    */
 
-    /* Internal state (zero-initialise before first call to _update) */
+    /* Internal state (zero-initialise before first update) */
     float integral;       /**< Accumulated integral term.                      */
     float prev_measurement; /**< Previous measurement for derivative term.    */
-    bool  first_update;   /**< true until first _update call (skips derivative).*/
+    bool  first_update;   /**< true until first update call (skips derivative).*/
 } ecl_pid_t;
 
 /**
@@ -47,7 +47,7 @@ typedef struct {
  * @param output_max      Upper output clamp.
  * @param integral_limit  Anti-windup integral clamp (absolute value).
  */
-void ecl_pid_init(
+void ecl_algo_pid_init(
     ecl_pid_t *pid,
     float kp, float ki, float kd,
     float output_min, float output_max,
@@ -63,7 +63,7 @@ void ecl_pid_init(
  * @param dt_s         Time elapsed since last call (seconds).
  * @return             Controller output, clamped to [output_min, output_max].
  */
-float ecl_pid_update(
+float ecl_algo_pid_update(
     ecl_pid_t *pid,
     float setpoint,
     float measurement,
@@ -73,7 +73,7 @@ float ecl_pid_update(
 /**
  * @brief Reset integral and derivative state (e.g. on mode change).
  */
-void ecl_pid_reset(ecl_pid_t *pid);
+void ecl_algo_pid_reset(ecl_pid_t *pid);
 
 #ifdef __cplusplus
 }
