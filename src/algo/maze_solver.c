@@ -38,6 +38,7 @@ static ecl_maze_heading_t heading_turn_around(ecl_maze_heading_t h)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
+/* Initialise the maze solver rule and starting cardinal heading. */
 void ecl_maze_solver_init(
     ecl_maze_solver_t *solver,
     ecl_maze_follow_t  rule,
@@ -48,6 +49,7 @@ void ecl_maze_solver_init(
     solver->heading = initial_heading;
 }
 
+/* Choose the next wall-following turn from left/front/right wall readings. */
 ecl_maze_turn_t ecl_maze_solver_update(
     ecl_maze_solver_t *solver,
     bool wall_left,
@@ -91,6 +93,7 @@ ecl_maze_turn_t ecl_maze_solver_update(
     return turn;
 }
 
+/* Apply a completed turn to the solver's stored absolute heading. */
 void ecl_maze_solver_apply_turn(
     ecl_maze_solver_t *solver,
     ecl_maze_turn_t    turn)
@@ -113,6 +116,7 @@ void ecl_maze_solver_apply_turn(
     }
 }
 
+/* Return the solver's current cardinal heading, defaulting north on NULL. */
 ecl_maze_heading_t ecl_maze_solver_heading(
     const ecl_maze_solver_t *solver)
 {

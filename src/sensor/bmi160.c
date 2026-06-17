@@ -41,11 +41,13 @@ static const char *TAG = "bmi160";
 
 /* ---- I2C helpers --------------------------------------------------------- */
 
+/* Write one byte to a BMI160 register over I2C. */
 static esp_err_t bmi160_write(const ecl_bmi160_t *imu, uint8_t reg, uint8_t val) {
     uint8_t buf[2] = {reg, val};
     return i2c_master_transmit(imu->dev_handle, buf, sizeof(buf), -1);
 }
 
+/* Read one or more bytes from a BMI160 register over I2C. */
 static esp_err_t bmi160_read(const ecl_bmi160_t *imu,
                               uint8_t reg, uint8_t *data, size_t len) {
     return i2c_master_transmit_receive(imu->dev_handle, &reg, 1, data, len, -1);
@@ -71,6 +73,7 @@ static esp_err_t bmi160_wait_cmd_ready(const ecl_bmi160_t *imu) {
 
 /* ---- scale factors ------------------------------------------------------- */
 
+/* Return accelerometer scale in g per LSB for a configured full-scale range. */
 static float accel_scale_from_range(ecl_bmi160_accel_range_t range) {
     switch (range) {
         case ECL_BMI160_ACCEL_RANGE_2G:  return 1.0f / 16384.0f;
@@ -81,6 +84,7 @@ static float accel_scale_from_range(ecl_bmi160_accel_range_t range) {
     }
 }
 
+/* Return gyroscope scale in degrees per second per LSB for a configured range. */
 static float gyro_scale_from_range(ecl_bmi160_gyro_range_t range) {
     switch (range) {
         case ECL_BMI160_GYRO_RANGE_2000DPS: return 1.0f / 16.4f;
@@ -94,6 +98,7 @@ static float gyro_scale_from_range(ecl_bmi160_gyro_range_t range) {
 
 /* ---- public API ---------------------------------------------------------- */
 
+/* Build a default BMI160 configuration for an existing I2C master bus. */
 ecl_bmi160_config_t ecl_bmi160_default_config(i2c_master_bus_handle_t bus) {
     ecl_bmi160_config_t config = {
         .bus         = bus,
@@ -104,6 +109,7 @@ ecl_bmi160_config_t ecl_bmi160_default_config(i2c_master_bus_handle_t bus) {
     return config;
 }
 
+/* Add the BMI160 to the bus, verify it, power sensors, and configure ranges. */
 esp_err_t ecl_bmi160_init(
     ecl_bmi160_t              *imu,
     const ecl_bmi160_config_t *config
@@ -209,6 +215,7 @@ esp_err_t ecl_bmi160_init(
     return ESP_OK;
 }
 
+/* Remove the BMI160 I2C device from the bus and mark the handle inactive. */
 esp_err_t ecl_bmi160_deinit(ecl_bmi160_t *imu) {
     if (imu == NULL || !imu->initialized) {
         return ESP_ERR_INVALID_STATE;
@@ -223,6 +230,7 @@ esp_err_t ecl_bmi160_deinit(ecl_bmi160_t *imu) {
     return ESP_OK;
 }
 
+/* Read raw accelerometer registers and convert them to g units. */
 esp_err_t ecl_bmi160_read_accel(
     const ecl_bmi160_t *imu,
     ecl_bmi160_vec3_t  *accel_g
@@ -244,6 +252,7 @@ esp_err_t ecl_bmi160_read_accel(
     return ESP_OK;
 }
 
+/* Read raw gyroscope registers and convert them to degrees per second. */
 esp_err_t ecl_bmi160_read_gyro(
     const ecl_bmi160_t *imu,
     ecl_bmi160_vec3_t  *gyro_dps

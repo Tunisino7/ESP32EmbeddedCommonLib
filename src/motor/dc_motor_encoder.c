@@ -9,7 +9,7 @@
 
 /*
  * Called from ISR when the PCNT hardware counter reaches the high or low
- * watch-point.  edata->watch_point_val carries the exact limit value
+ * watch-point.  edata->watch_point_value carries the exact limit value
  * (+32767 or −32768), which we accumulate so the logical counter never
  * saturates.
  */
@@ -23,7 +23,7 @@ static bool IRAM_ATTR encoder_pcnt_overflow_cb(
         (ecl_dc_motor_encoder_t *)user_data;
 
     portENTER_CRITICAL_ISR(&enc->spinlock);
-    enc->accum_pulses += (int64_t)edata->watch_point_val;
+    enc->accum_pulses += (int64_t)edata->watch_point_value;
     portEXIT_CRITICAL_ISR(&enc->spinlock);
 
     return false; /* No higher-priority task woken. */
@@ -50,6 +50,7 @@ static int64_t encoder_get_total(ecl_dc_motor_encoder_t *motor)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
+/* Build a default combined DC motor and quadrature encoder configuration. */
 ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
@@ -67,6 +68,7 @@ ecl_dc_motor_encoder_config_t ecl_dc_motor_encoder_default_config(
     return cfg;
 }
 
+/* Initialise the motor driver plus PCNT encoder channels and accumulator. */
 esp_err_t ecl_dc_motor_encoder_init(
     ecl_dc_motor_encoder_t              *motor,
     const ecl_dc_motor_encoder_config_t *config)
@@ -124,7 +126,7 @@ esp_err_t ecl_dc_motor_encoder_init(
 
     pcnt_chan_config_t chan_a_cfg = {
         .edge_gpio_num  = (int)config->pin_enc_a,
-        .level_gpio_num = have_b ? (int)config->pin_enc_b : PCNT_PIN_NOT_USED,
+        .level_gpio_num = have_b ? (int)config->pin_enc_b : -1,
     };
     err = pcnt_new_channel(motor->pcnt_unit, &chan_a_cfg, &motor->pcnt_chan_a);
     if (err != ESP_OK) goto fail_unit;
@@ -199,6 +201,7 @@ fail_motor:
     return err;
 }
 
+/* Set the underlying DC motor speed while preserving encoder state. */
 esp_err_t ecl_dc_motor_encoder_set_speed(
     ecl_dc_motor_encoder_t *motor,
     int8_t speed_pct)
@@ -207,6 +210,7 @@ esp_err_t ecl_dc_motor_encoder_set_speed(
     return ecl_dc_motor_set_speed(&motor->motor, speed_pct);
 }
 
+/* Stop the underlying DC motor while leaving encoder counting available. */
 esp_err_t ecl_dc_motor_encoder_stop(
     ecl_dc_motor_encoder_t *motor)
 {
@@ -214,6 +218,7 @@ esp_err_t ecl_dc_motor_encoder_stop(
     return ecl_dc_motor_stop(&motor->motor);
 }
 
+/* Read the accumulated signed encoder pulse count. */
 esp_err_t ecl_dc_motor_encoder_get_pulses(
     ecl_dc_motor_encoder_t *motor,
     int64_t *pulses)
@@ -225,6 +230,7 @@ esp_err_t ecl_dc_motor_encoder_get_pulses(
     return ESP_OK;
 }
 
+/* Compute output-shaft RPM since the previous RPM sample. */
 esp_err_t ecl_dc_motor_encoder_get_rpm(
     ecl_dc_motor_encoder_t *motor,
     float *rpm)
@@ -268,6 +274,7 @@ esp_err_t ecl_dc_motor_encoder_get_rpm(
     return ESP_OK;
 }
 
+/* Clear encoder counts and reset RPM reference timing. */
 esp_err_t ecl_dc_motor_encoder_reset_count(
     ecl_dc_motor_encoder_t *motor)
 {
@@ -285,6 +292,7 @@ esp_err_t ecl_dc_motor_encoder_reset_count(
     return ESP_OK;
 }
 
+/* Stop and release the motor driver and PCNT encoder resources. */
 esp_err_t ecl_dc_motor_encoder_deinit(
     ecl_dc_motor_encoder_t *motor)
 {

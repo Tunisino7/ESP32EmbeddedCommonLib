@@ -18,6 +18,7 @@
 #include "esp_rom_sys.h"
 #include "esp_timer.h"
 
+/* Validate GPIO pins and timing constants for an ultrasonic sensor. */
 static esp_err_t ultrasonic_sensor_validate_config(
     const ecl_ultrasonic_sensor_config_t *config
 ) {
@@ -36,6 +37,7 @@ static esp_err_t ultrasonic_sensor_validate_config(
     return ESP_OK;
 }
 
+/* Emit the HC-SR04 trigger pulse that starts one measurement. */
 static esp_err_t ultrasonic_sensor_trigger_measurement(
     const ecl_ultrasonic_sensor_t *sensor
 ) {
@@ -57,6 +59,7 @@ static esp_err_t ultrasonic_sensor_trigger_measurement(
     return gpio_set_level(sensor->config.trigger_pin, 0);
 }
 
+/* Busy-wait until ECHO reaches a requested level or the timeout expires. */
 static esp_err_t ultrasonic_sensor_wait_for_echo_level(
     const ecl_ultrasonic_sensor_t *sensor,
     int level,
@@ -71,6 +74,7 @@ static esp_err_t ultrasonic_sensor_wait_for_echo_level(
     return ESP_OK;
 }
 
+/* Build a default HC-SR04 configuration for trigger and echo GPIO pins. */
 ecl_ultrasonic_sensor_config_t ecl_ultrasonic_sensor_default_config(
     gpio_num_t trigger_pin,
     gpio_num_t echo_pin
@@ -85,6 +89,7 @@ ecl_ultrasonic_sensor_config_t ecl_ultrasonic_sensor_default_config(
     return config;
 }
 
+/* Configure trigger/echo GPIOs and initialise the sensor idle state. */
 esp_err_t ecl_ultrasonic_sensor_init(
     ecl_ultrasonic_sensor_t *sensor,
     const ecl_ultrasonic_sensor_config_t *config
@@ -141,6 +146,7 @@ esp_err_t ecl_ultrasonic_sensor_init(
     return ESP_OK;
 }
 
+/* Trigger a measurement and return the raw ECHO high pulse width in us. */
 esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
     ecl_ultrasonic_sensor_t *sensor,
     uint32_t *pulse_width_us
@@ -180,6 +186,7 @@ esp_err_t ecl_ultrasonic_sensor_measure_pulse_us(
     return ESP_OK;
 }
 
+/* Measure ECHO pulse width and convert it to one-way distance in centimetres. */
 esp_err_t ecl_ultrasonic_sensor_measure_distance_cm(
     ecl_ultrasonic_sensor_t *sensor,
     float *distance_cm

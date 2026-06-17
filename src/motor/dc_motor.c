@@ -5,6 +5,7 @@
 
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
+/* Validate the required GPIO pins for a DC motor configuration. */
 static esp_err_t dc_motor_validate(const ecl_dc_motor_config_t *config)
 {
     if (config == NULL)                 return ESP_ERR_INVALID_ARG;
@@ -14,6 +15,7 @@ static esp_err_t dc_motor_validate(const ecl_dc_motor_config_t *config)
     return ESP_OK;
 }
 
+/* Drive the two H-bridge direction inputs to the requested logical levels. */
 static esp_err_t dc_motor_set_dir(const ecl_dc_motor_t *motor,
                                    bool in1, bool in2)
 {
@@ -22,6 +24,7 @@ static esp_err_t dc_motor_set_dir(const ecl_dc_motor_t *motor,
     return gpio_set_level(motor->config.pin_in2, in2 ? 1 : 0);
 }
 
+/* Set and latch the LEDC PWM duty for the motor channel. */
 static esp_err_t dc_motor_set_duty(const ecl_dc_motor_t *motor,
                                     uint32_t duty)
 {
@@ -33,6 +36,7 @@ static esp_err_t dc_motor_set_duty(const ecl_dc_motor_t *motor,
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
+/* Build a default DC motor configuration for the supplied H-bridge pins. */
 ecl_dc_motor_config_t ecl_dc_motor_default_config(
     gpio_num_t pin_in1,
     gpio_num_t pin_in2,
@@ -51,6 +55,7 @@ ecl_dc_motor_config_t ecl_dc_motor_default_config(
     return cfg;
 }
 
+/* Configure direction GPIOs and LEDC PWM for a DC motor instance. */
 esp_err_t ecl_dc_motor_init(
     ecl_dc_motor_t              *motor,
     const ecl_dc_motor_config_t *config)
@@ -108,6 +113,7 @@ esp_err_t ecl_dc_motor_init(
     return ESP_OK;
 }
 
+/* Set signed motor speed as a percentage, using sign for direction. */
 esp_err_t ecl_dc_motor_set_speed(
     ecl_dc_motor_t *motor,
     int8_t speed_pct)
@@ -137,6 +143,7 @@ esp_err_t ecl_dc_motor_set_speed(
     return ESP_OK;
 }
 
+/* Stop the motor using coast or brake mode based on configuration. */
 esp_err_t ecl_dc_motor_stop(ecl_dc_motor_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;
@@ -154,6 +161,7 @@ esp_err_t ecl_dc_motor_stop(ecl_dc_motor_t *motor)
     return err;
 }
 
+/* Stop the motor and mark the driver instance as uninitialised. */
 esp_err_t ecl_dc_motor_deinit(ecl_dc_motor_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;

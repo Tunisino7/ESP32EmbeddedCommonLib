@@ -21,6 +21,7 @@
 
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
+/* Convert a float speed percentage to an int8 value clamped to [-100, 100]. */
 static int8_t motor_ctrl_clamp_pct(float v)
 {
     if (v >  100.0f) return  100;
@@ -30,6 +31,7 @@ static int8_t motor_ctrl_clamp_pct(float v)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
+/* Bind a generic H-bridge implementation to physical motor parameters. */
 esp_err_t ecl_motor_control_init(
     ecl_motor_control_t              *motor,
     const ecl_hbridge_t              *hbridge,
@@ -46,6 +48,7 @@ esp_err_t ecl_motor_control_init(
     return ESP_OK;
 }
 
+/* Command motor speed directly as a signed duty-cycle percentage. */
 esp_err_t ecl_motor_control_set_speed_pct(
     ecl_motor_control_t *motor,
     int8_t pct)
@@ -54,6 +57,7 @@ esp_err_t ecl_motor_control_set_speed_pct(
     return motor->hbridge.set_speed(motor->hbridge.ctx, pct);
 }
 
+/* Convert output-shaft RPM to a speed percentage and command the H-bridge. */
 esp_err_t ecl_motor_control_set_speed_rpm(
     ecl_motor_control_t *motor,
     float rpm)
@@ -64,6 +68,7 @@ esp_err_t ecl_motor_control_set_speed_rpm(
     return ecl_motor_control_set_speed_pct(motor, pct);
 }
 
+/* Convert linear wheel speed in m/s to RPM and command the H-bridge. */
 esp_err_t ecl_motor_control_set_speed_ms(
     ecl_motor_control_t *motor,
     float ms)
@@ -75,6 +80,7 @@ esp_err_t ecl_motor_control_set_speed_ms(
     return ecl_motor_control_set_speed_rpm(motor, rpm);
 }
 
+/* Stop the motor through the bound H-bridge implementation. */
 esp_err_t ecl_motor_control_stop(ecl_motor_control_t *motor)
 {
     if (motor == NULL || !motor->initialized) return ESP_ERR_INVALID_STATE;

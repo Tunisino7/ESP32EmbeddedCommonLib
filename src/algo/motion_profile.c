@@ -19,8 +19,10 @@
 
 /* ── Private helpers ─────────────────────────────────────────────────────── */
 
+/* Return the absolute value of a float without pulling in libm. */
 static float mp_fabsf(float v) { return v < 0.0f ? -v : v; }
 
+/* Clamp a float to the inclusive [lo, hi] interval. */
 static float mp_clampf(float v, float lo, float hi)
 {
     if (v < lo) return lo;
@@ -30,6 +32,7 @@ static float mp_clampf(float v, float lo, float hi)
 
 /* ── Public API ──────────────────────────────────────────────────────────── */
 
+/* Initialise a trapezoidal velocity profile with acceleration limits. */
 void ecl_motion_profile_init(
     ecl_motion_profile_t *mp,
     float max_accel,
@@ -46,6 +49,7 @@ void ecl_motion_profile_init(
     mp->target_vel  = initial_vel;
 }
 
+/* Set the target velocity that subsequent profile updates will approach. */
 void ecl_motion_profile_set_target(
     ecl_motion_profile_t *mp,
     float target_vel)
@@ -54,6 +58,7 @@ void ecl_motion_profile_set_target(
     mp->target_vel = target_vel;
 }
 
+/* Advance the velocity profile by one time step and return current velocity. */
 float ecl_motion_profile_update(
     ecl_motion_profile_t *mp,
     float dt_s)
@@ -84,6 +89,7 @@ float ecl_motion_profile_update(
     return mp->current_vel;
 }
 
+/* Report whether the profile has reached its target within float tolerance. */
 bool ecl_motion_profile_is_settled(
     const ecl_motion_profile_t *mp)
 {
